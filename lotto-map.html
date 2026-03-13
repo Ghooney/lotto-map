@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>로또명당지도 🎱</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0a0a14 0%, #12122a 50%, #0a0a14 100%);
+    font-family: 'Noto Sans KR', sans-serif;
+    color: #fff;
+    overflow-x: hidden;
+  }
+
+  .ambient1 {
+    position: fixed; top: -20%; left: -10%;
+    width: 60%; height: 60%;
+    background: radial-gradient(ellipse, rgba(255,184,0,0.08) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+  .ambient2 {
+    position: fixed; bottom: -20%; right: -10%;
+    width: 50%; height: 50%;
+    background: radial-gradient(ellipse, rgba(255,107,0,0.06) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+
+  header {
+    position: relative; z-index: 10;
+    padding: 20px 20px 0;
+    animation: fadeDown 0.6s ease forwards;
+  }
+
+  @keyframes fadeDown {
+    from { opacity:0; transform: translateY(-16px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+  @keyframes fadeUp {
+    from { opacity:0; transform: translateY(12px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+  @keyframes slideIn {
+    from { opacity:0; transform: translateX(-16px); }
+    to   { opacity:1; transform: translateX(0); }
+  }
+  @keyframes pulse {
+    0%,100% { r: 5; opacity: 0.15; }
+    50%      { r: 8; opacity: 0.35; }
+  }
+
+  .logo-row {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .logo-icon {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: linear-gradient(135deg, #FFB800, #FF6B00);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; box-shadow: 0 0 20px rgba(255,184,0,0.4);
+    margin-right: 10px;
+  }
+  .logo-text {
+    font-size: 20px; font-weight: 900; letter-spacing: -0.5px;
+    background: linear-gradient(90deg, #FFB800, #FF6B00);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .logo-sub { font-size: 11px; color: #555; margin-top: -2px; }
+  .badge-live {
+    background: rgba(255,184,0,0.12);
+    border: 1px solid rgba(255,184,0,0.25);
+    border-radius: 20px; padding: 6px 14px;
+    font-size: 12px; color: #FFB800;
+  }
+
+  .tabs {
+    display: flex; gap: 4px; margin-top: 18px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px; padding: 4px;
+  }
+  .tab-btn {
+    flex: 1; padding: 10px 0; border-radius: 9px;
+    border: none; cursor: pointer; font-size: 13px;
+    font-family: 'Noto Sans KR', sans-serif;
+    background: transparent; color: #555;
+    transition: all 0.2s;
+  }
+  .tab-btn.active {
+    background: linear-gradient(135deg, #FFB800, #FF6B00);
+    color: #000; font-weight: 700;
+  }
+
+  main {
+    position: relative; z-index: 5;
+    padding: 16px 20px 100px;
+  }
+
+  .stats-row {
+    display: flex; gap: 10px; margin-bottom: 16px;
+  }
+  .stat-card {
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px; padding: 10px 12px;
+    animation: fadeUp 0.5s ease forwards;
+  }
+  .stat-icon { font-size: 16px; margin-bottom: 2px; }
+  .stat-value { font-size: 15px; font-weight: 800; color: #FFB800; }
+  .stat-label { font-size: 10px; color: #555; }
+
+  .map-card {
+    background: linear-gradient(135deg, #0f0f1e, #141428);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 20px; padding: 16px; margin-bottom: 16px;
+  }
+  .map-title {
+    font-size: 13px; font-weight: 700; color: #FFB800; margin-bottom: 12px;
+  }
+  .map-svg-wrap {
+    position: relative; width: 100%; padding-bottom: 88%;
+  }
+  .map-svg-wrap svg {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  }
+  .legend {
+    display: flex; gap: 10px; justify-content: center;
+    margin-top: 10px; flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 9px; color: #555;
+  }
+  .legend-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+
+  .detail-card {
+    background: linear-gradient(135deg, rgba(255,184,0,0.1), rgba(255,107,0,0.05));
+    border: 1px solid rgba(255,184,0,0.2);
+    border-radius: 16px; padding: 16px; margin-bottom: 16px;
+    animation: fadeUp 0.3s ease;
+    display: none;
+  }
+  .detail-card.visible { display: block; }
+  .detail-name { font-size: 20px; font-weight: 900; color: #FFB800; }
+  .detail-sub { font-size: 13px; color: #888; margin-top: 2px; }
+  .detail-prize {
+    font-size: 22px; font-weight: 900;
+    background: linear-gradient(90deg, #FFB800, #FF6B00);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .detail-prize-label { font-size: 11px; color: #666; }
+  .btn-row { display: flex; gap: 8px; margin-top: 12px; }
+  .btn-primary {
+    flex: 1; padding: 10px 0;
+    background: linear-gradient(135deg, #FFB800, #FF6B00);
+    border: none; border-radius: 10px;
+    color: #000; font-weight: 700; font-size: 13px; cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+  .btn-secondary {
+    flex: 1; padding: 10px 0;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
+    color: #fff; font-weight: 600; font-size: 13px; cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+
+  /* Rank & Recent tabs */
+  .store-card {
+    border-radius: 14px; padding: 14px 16px; margin-bottom: 10px;
+    animation: slideIn 0.4s ease forwards;
+  }
+  .store-card-default {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .store-card-gold {
+    background: linear-gradient(135deg, rgba(255,184,0,0.12), rgba(255,107,0,0.06));
+    border: 1px solid rgba(255,184,0,0.25);
+  }
+  .store-badge { font-size: 24px; }
+  .store-name { font-weight: 800; font-size: 16px; }
+  .store-region { font-size: 12px; color: #666; margin-top: 2px; }
+  .store-prize { font-weight: 900; font-size: 18px; color: #FFB800; }
+  .store-prize-label { font-size: 10px; color: #555; }
+  .hot-badge {
+    margin-top: 10px; padding: 6px 10px;
+    background: rgba(255,184,0,0.12); border-radius: 8px;
+    font-size: 11px; color: #FFB800;
+  }
+  .grade-badge {
+    background: linear-gradient(135deg,#FFB800,#FF6B00);
+    border-radius: 6px; padding: 2px 8px;
+    font-size: 11px; font-weight: 700; color: #000;
+    display: inline-block;
+  }
+  .round-text { font-size: 12px; color: #555; }
+  .win-date { font-size: 11px; color: #555; margin-top: 2px; }
+  .win-prize { font-weight: 900; font-size: 20px; color: #FFB800; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .tab-desc { font-size: 14px; color: #666; margin-bottom: 16px; }
+
+  .bottom-bar {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+    background: linear-gradient(to top, #0a0a14 80%, transparent);
+    padding: 16px 20px 24px;
+    display: flex; gap: 10px;
+  }
+  .btn-main {
+    flex: 1; padding: 14px 0;
+    background: linear-gradient(135deg, #FFB800, #FF6B00);
+    border: none; border-radius: 14px;
+    font-weight: 900; font-size: 15px; color: #000; cursor: pointer;
+    box-shadow: 0 4px 24px rgba(255,184,0,0.4);
+    font-family: 'Noto Sans KR', sans-serif;
+    transition: transform 0.15s;
+  }
+  .btn-main:active { transform: scale(0.97); }
+  .btn-bell {
+    width: 52px; padding: 14px 0;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px; font-size: 20px; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="ambient1"></div>
+<div class="ambient2"></div>
+
+<header>
+  <div class="logo-row">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="logo-icon">🎱</div>
+      <div>
+        <div class="logo-text">로또명당지도</div>
+        <div class="logo-sub">LOTTO LUCKY MAP</div>
+      </div>
+    </div>
+    <div class="badge-live">🔴 1210회 진행중</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('map')">🗺️ 지역 히트맵</button>
+    <button class="tab-btn" onclick="switchTab('rank')">🏆 명당 랭킹</button>
+    <button class="tab-btn" onclick="switchTab('recent')">⚡ 최신 당첨</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- MAP TAB -->
+  <div id="tab-map" class="tab-content active">
+
+    <div class="stats-row">
+      <div class="stat-card" style="animation-delay:0.1s">
+        <div class="stat-icon">💰</div>
+        <div class="stat-value">3,090억</div>
+        <div class="stat-label">총 누적 당첨금</div>
+      </div>
+      <div class="stat-card" style="animation-delay:0.2s">
+        <div class="stat-icon">📍</div>
+        <div class="stat-value">6,821개</div>
+        <div class="stat-label">전국 판매점</div>
+      </div>
+      <div class="stat-card" style="animation-delay:0.3s">
+        <div class="stat-icon">🎯</div>
+        <div class="stat-value">2곳</div>
+        <div class="stat-label">이번주 1등</div>
+      </div>
+    </div>
+
+    <div class="map-card">
+      <div class="map-title">📊 지역별 누적 당첨금 히트맵</div>
+      <div class="map-svg-wrap">
+        <svg id="koreaMap" viewBox="0 0 100 100">
+          <!-- Korea background -->
+          <ellipse cx="58" cy="50" rx="28" ry="40" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.05)" stroke-width="0.3"/>
+
+          <!-- Regions: cx, cy, r(ratio), prize label, name, id -->
+          <!-- 경기 (최대) -->
+          <g class="region-bubble" data-id="gyeonggi" data-name="경기" data-prize="521억" data-count="389" data-top="수원시" onclick="selectRegion(this)">
+            <circle class="pulse-ring" cx="55" cy="35" r="6" fill="none" stroke="#FF6B00" stroke-width="0.5" opacity="0.2"/>
+            <circle cx="55" cy="35" r="12" fill="#FF6B00" opacity="0.85" filter="url(#glow-hot)"/>
+            <text x="55" y="35.8" text-anchor="middle" font-size="2.6" fill="#fff" font-weight="bold" style="pointer-events:none">521억</text>
+            <text x="55" y="50" text-anchor="middle" font-size="2.8" fill="#888" style="pointer-events:none">경기</text>
+          </g>
+
+          <!-- 서울 -->
+          <g class="region-bubble" data-id="seoul" data-name="서울" data-prize="483억" data-count="312" data-top="강남구" onclick="selectRegion(this)">
+            <circle class="pulse-ring" cx="51" cy="28" r="5" fill="none" stroke="#FF6B00" stroke-width="0.5" opacity="0.2"/>
+            <circle cx="51" cy="28" r="11" fill="#FF6B00" opacity="0.85" filter="url(#glow-hot)"/>
+            <text x="51" y="28.8" text-anchor="middle" font-size="2.6" fill="#fff" font-weight="bold" style="pointer-events:none">483억</text>
+            <text x="51" y="41.5" text-anchor="middle" font-size="2.8" fill="#888" style="pointer-events:none">서울</text>
+          </g>
+
+          <!-- 부산 -->
+          <g class="region-bubble" data-id="busan" data-name="부산" data-prize="312억" data-count="241" data-top="해운대구" onclick="selectRegion(this)">
+            <circle class="pulse-ring" cx="73" cy="72" r="4" fill="none" stroke="#FFB800" stroke-width="0.5" opacity="0.2"/>
+            <circle cx="73" cy="72" r="9" fill="#FFB800" opacity="0.85" filter="url(#glow-warm)"/>
+            <text x="73" y="72.8" text-anchor="middle" font-size="2.6" fill="#000" font-weight="bold" style="pointer-events:none">312억</text>
+            <text x="73" y="83.5" text-anchor="middle" font-size="2.8" fill="#888" style="pointer-events:none">부산</text>
+          </g>
+
+          <!-- 대구 -->
+          <g class="region-bubble" data-id="daegu" data-name="대구" data-prize="221억" data-count="178" onclick="selectRegion(this)">
+            <circle cx="68" cy="60" r="7.5" fill="#FFB800" opacity="0.8" filter="url(#glow-warm)"/>
+            <text x="68" y="60.8" text-anchor="middle" font-size="2.6" fill="#000" font-weight="bold" style="pointer-events:none">221억</text>
+            <text x="68" y="70" text-anchor="middle" font-size="2.8" fill="#888" style="pointer-events:none">대구</text>
+          </g>
+
+          <!-- 인천 -->
+          <g class="region-bubble" data-id="incheon" data-name="인천" data-prize="184억" data-count="134" onclick="selectRegion(this)">
+            <circle cx="42" cy="33" r="6.5" fill="#FFB800" opacity="0.75" filter="url(#glow-warm)"/>
+            <text x="42" y="33.8" text-anchor="middle" font-size="2.6" fill="#000" font-weight="bold" style="pointer-events:none">184억</text>
+            <text x="42" y="42" text-anchor="middle" font-size="2.8" fill="#888" style="pointer-events:none">인천</text>
+          </g>
+
+          <!-- 경남 -->
+          <g class="region-bubble" data-id="gyeongnam" data-name="경남" data-prize="189억" data-count="144" onclick="selectRegion(this)">
+            <circle cx="64" cy="74" r="6.5" fill="#FFB800" opacity="0.75"/>
+            <text x="64" y="74.8" text-anchor="middle" font-size="2.6" fill="#000" font-weight="bold" style="pointer-events:none">189억</text>
+            <text x="64" y="83" text-anchor="middle" font-size="2.8" fill="#888" style="pointer-events:none">경남</text>
+          </g>
+
+          <!-- 경북 -->
+          <g class="region-bubble" data-id="gyeongbuk" data-name="경북" data-prize="156억" data-count="119" onclick="selectRegion(this)">
+            <circle cx="72" cy="50" r="6" fill="#FFE066" opacity="0.8"/>
+            <text x="72" y="50.8" text-anchor="middle" font-size="2.6" fill="#000" font-weight="bold" style="pointer-events:none">156억</text>
+            <text x="72" y="59" text-anchor="middle" font-size="2.8" fill="#888" style="pointer-events:none">경북</text>
+          </g>
+
+          <!-- 대전 -->
+          <g class="region-bubble" data-id="daejeon" data-name="대전" data-prize="168억" data-count="129" onclick="selectRegion(this)">
+            <circle cx="55" cy="55" r="6" fill="#FFE066" opacity="0.8"/>
+            <text x="55" y="55.8" text-anchor="middle" font-size="2.6" fill="#000" font-weight="bold" style="pointer-events:none">168억</text>
+            <text x="55" y="63.5" text-anchor="middle" font-size="2.8" fill="#888" style="pointer-events:none">대전</text>
+          </g>
+
+          <!-- 광주 -->
+          <g class="region-bubble" data-id="gwangju" data-name="광주" data-prize="142억" data-count="108" onclick="selectRegion(this)">
+            <circle cx="45" cy="70" r="5.5" fill="#FFE066" opacity="0.75"/>
+            <text x="45" y="70.8" text-anchor="middle" font-size="2.6" fill="#000" font-weight="bold" style="pointer-events:none">142억</text>
+            <text x="45" y="78" text-anchor="middle" font-size="2.8" fill="#888" style="pointer-events:none">광주</text>
+          </g>
+
+          <!-- 충남 -->
+          <g class="region-bubble" data-id="chungnam" data-name="충남" data-prize="112억" data-count="86" onclick="selectRegion(this)">
+            <circle cx="46" cy="52" r="5" fill="#FFE066" opacity="0.7"/>
+            <text x="46" y="52.8" text-anchor="middle" font-size="2.5" fill="#000" font-weight="bold" style="pointer-events:none">112억</text>
+            <text x="46" y="60" text-anchor="middle" font-size="2.8" fill="#888" style="pointer-events:none">충남</text>
+          </g>
+
+          <!-- 강원 -->
+          <g class="region-bubble" data-id="gangwon" data-name="강원" data-prize="98억" data-count="74" onclick="selectRegion(this)">
+            <circle cx="70" cy="22" r="4.5" fill="#2a3050" opacity="0.9" stroke="#ffffff15" stroke-width="0.3"/>
+            <text x="70" y="22.8" text-anchor="middle" font-size="2.4" fill="#aaa" font-weight="bold" style="pointer-events:none">98억</text>
+            <text x="70" y="29" text-anchor="middle" font-size="2.8" fill="#666" style="pointer-events:none">강원</text>
+          </g>
+
+          <!-- 전북 -->
+          <g class="region-bubble" data-id="jeonbuk" data-name="전북" data-prize="104억" data-count="79" onclick="selectRegion(this)">
+            <circle cx="50" cy="63" r="4.5" fill="#2a3050" opacity="0.9" stroke="#ffffff15" stroke-width="0.3"/>
+            <text x="50" y="63.8" text-anchor="middle" font-size="2.4" fill="#aaa" font-weight="bold" style="pointer-events:none">104억</text>
+            <text x="50" y="70" text-anchor="middle" font-size="2.8" fill="#666" style="pointer-events:none">전북</text>
+          </g>
+
+          <!-- 울산 -->
+          <g class="region-bubble" data-id="ulsan" data-name="울산" data-prize="129억" data-count="97" onclick="selectRegion(this)">
+            <circle cx="77" cy="65" r="5" fill="#FFE066" opacity="0.7"/>
+            <text x="77" y="65.8" text-anchor="middle" font-size="2.4" fill="#000" font-weight="bold" style="pointer-events:none">129억</text>
+            <text x="77" y="73" text-anchor="middle" font-size="2.8" fill="#888" style="pointer-events:none">울산</text>
+          </g>
+
+          <!-- 전남 -->
+          <g class="region-bubble" data-id="jeonnam" data-name="전남" data-prize="91억" data-count="69" onclick="selectRegion(this)">
+            <circle cx="46" cy="78" r="4" fill="#2a3050" opacity="0.9" stroke="#ffffff15" stroke-width="0.3"/>
+            <text x="46" y="78.8" text-anchor="middle" font-size="2.3" fill="#aaa" font-weight="bold" style="pointer-events:none">91억</text>
+            <text x="46" y="85" text-anchor="middle" font-size="2.8" fill="#666" style="pointer-events:none">전남</text>
+          </g>
+
+          <!-- 충북 -->
+          <g class="region-bubble" data-id="chungbuk" data-name="충북" data-prize="87억" data-count="66" onclick="selectRegion(this)">
+            <circle cx="61" cy="47" r="4" fill="#2a3050" opacity="0.9" stroke="#ffffff15" stroke-width="0.3"/>
+            <text x="61" y="47.8" text-anchor="middle" font-size="2.3" fill="#aaa" font-weight="bold" style="pointer-events:none">87억</text>
+            <text x="61" y="54" text-anchor="middle" font-size="2.8" fill="#666" style="pointer-events:none">충북</text>
+          </g>
+
+          <!-- 세종 -->
+          <g class="region-bubble" data-id="sejong" data-name="세종" data-prize="41억" data-count="31" onclick="selectRegion(this)">
+            <circle cx="53" cy="50" r="3" fill="#1e1e35" opacity="0.9" stroke="#ffffff10" stroke-width="0.3"/>
+            <text x="53" y="50.8" text-anchor="middle" font-size="2.2" fill="#777" font-weight="bold" style="pointer-events:none">41억</text>
+            <text x="53" y="55.5" text-anchor="middle" font-size="2.5" fill="#555" style="pointer-events:none">세종</text>
+          </g>
+
+          <!-- 제주 -->
+          <g class="region-bubble" data-id="jeju" data-name="제주" data-prize="52억" data-count="40" onclick="selectRegion(this)">
+            <circle cx="44" cy="91" r="3.5" fill="#1e1e35" opacity="0.9" stroke="#ffffff10" stroke-width="0.3"/>
+            <text x="44" y="91.8" text-anchor="middle" font-size="2.2" fill="#777" font-weight="bold" style="pointer-events:none">52억</text>
+            <text x="44" y="97" text-anchor="middle" font-size="2.5" fill="#555" style="pointer-events:none">제주</text>
+          </g>
+
+          <defs>
+            <filter id="glow-hot" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="1.5" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <filter id="glow-warm" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="1" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+        </svg>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#FF6B00"></div>HOT 400억+</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#FFB800"></div>WARM 150억+</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#FFE066"></div>MILD 80억+</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#2a3050"></div>COOL</div>
+      </div>
+    </div>
+
+    <!-- Detail Card -->
+    <div class="detail-card" id="detailCard">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div class="detail-name" id="detailName">서울</div>
+          <div class="detail-sub" id="detailSub">총 312회 배출 · 최고 명당: 강남구</div>
+        </div>
+        <div style="text-align:right">
+          <div class="detail-prize" id="detailPrize">483억</div>
+          <div class="detail-prize-label">누적 당첨금</div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-primary">📍 이 지역 판매점 보기</button>
+        <button class="btn-secondary">📊 상세 분석</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RANK TAB -->
+  <div id="tab-rank" class="tab-content">
+    <div class="tab-desc">역대 누적 당첨금 기준 전국 TOP 판매점</div>
+
+    <div class="store-card store-card-gold" style="animation-delay:0s">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="store-badge">👑</div>
+        <div style="flex:1">
+          <div class="store-name">부일카서비스</div>
+          <div class="store-region">📍 부산 동구 · 1등 48회 배출</div>
+        </div>
+        <div style="text-align:right">
+          <div class="store-prize">112억</div>
+          <div class="store-prize-label">누적 당첨금</div>
+        </div>
+      </div>
+      <div class="hot-badge">🔥 전국 1위 명당 · 평균 25회마다 1등 배출</div>
+    </div>
+
+    <div class="store-card store-card-default" style="animation-delay:0.1s">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="store-badge">🥇</div>
+        <div style="flex:1">
+          <div class="store-name">스파</div>
+          <div class="store-region">📍 서울 노원구 · 1등 44회 배출</div>
+        </div>
+        <div style="text-align:right">
+          <div class="store-prize">101억</div>
+          <div class="store-prize-label">누적 당첨금</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="store-card store-card-default" style="animation-delay:0.2s">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="store-badge">🥈</div>
+        <div style="flex:1">
+          <div class="store-name">로또명당인주점</div>
+          <div class="store-region">📍 충남 아산시 · 1등 32회 배출</div>
+        </div>
+        <div style="text-align:right">
+          <div class="store-prize">74억</div>
+          <div class="store-prize-label">누적 당첨금</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="store-card store-card-default" style="animation-delay:0.3s">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="store-badge">🥉</div>
+        <div style="flex:1">
+          <div class="store-name">뉴빅마트</div>
+          <div class="store-region">📍 부산 기장군 · 1등 30회 배출</div>
+        </div>
+        <div style="text-align:right">
+          <div class="store-prize">69억</div>
+          <div class="store-prize-label">누적 당첨금</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="store-card store-card-default" style="animation-delay:0.4s">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="store-badge">⭐</div>
+        <div style="flex:1">
+          <div class="store-name">쿨복권방</div>
+          <div class="store-region">📍 대구 달서구 · 1등 30회 배출</div>
+        </div>
+        <div style="text-align:right">
+          <div class="store-prize">62억</div>
+          <div class="store-prize-label">누적 당첨금</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECENT TAB -->
+  <div id="tab-recent" class="tab-content">
+    <div class="tab-desc">최근 당첨 판매점 실시간 업데이트</div>
+
+    <div class="store-card store-card-gold" style="animation-delay:0s">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span class="grade-badge">1등</span>
+            <span class="round-text">제 1210회</span>
+          </div>
+          <div class="store-name">행운복권방</div>
+          <div class="store-region">📍 서울 강남구</div>
+        </div>
+        <div style="text-align:right">
+          <div class="win-prize">32억</div>
+          <div class="win-date">2025.03.08</div>
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:10px">
+        <button class="btn-secondary" style="font-size:12px;padding:8px 0">🗺️ 지도에서 보기</button>
+        <button class="btn-secondary" style="font-size:12px;padding:8px 0">🧭 길안내</button>
+      </div>
+    </div>
+
+    <div class="store-card store-card-default" style="animation-delay:0.1s">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span class="grade-badge">1등</span>
+            <span class="round-text">제 1210회</span>
+          </div>
+          <div class="store-name">대박마트</div>
+          <div class="store-region">📍 경기 성남시</div>
+        </div>
+        <div style="text-align:right">
+          <div class="win-prize">32억</div>
+          <div class="win-date">2025.03.08</div>
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:10px">
+        <button class="btn-secondary" style="font-size:12px;padding:8px 0">🗺️ 지도에서 보기</button>
+        <button class="btn-secondary" style="font-size:12px;padding:8px 0">🧭 길안내</button>
+      </div>
+    </div>
+
+    <div class="store-card store-card-default" style="animation-delay:0.2s">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span class="grade-badge">1등</span>
+            <span class="round-text">제 1209회</span>
+          </div>
+          <div class="store-name">부일카서비스</div>
+          <div class="store-region">📍 부산 동구</div>
+        </div>
+        <div style="text-align:right">
+          <div class="win-prize">28억</div>
+          <div class="win-date">2025.03.01</div>
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:10px">
+        <button class="btn-secondary" style="font-size:12px;padding:8px 0">🗺️ 지도에서 보기</button>
+        <button class="btn-secondary" style="font-size:12px;padding:8px 0">🧭 길안내</button>
+      </div>
+    </div>
+
+    <div class="store-card store-card-default" style="animation-delay:0.3s">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span class="grade-badge">1등</span>
+            <span class="round-text">제 1208회</span>
+          </div>
+          <div class="store-name">럭키스토어</div>
+          <div class="store-region">📍 인천 남동구</div>
+        </div>
+        <div style="text-align:right">
+          <div class="win-prize">41억</div>
+          <div class="win-date">2025.02.22</div>
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:10px">
+        <button class="btn-secondary" style="font-size:12px;padding:8px 0">🗺️ 지도에서 보기</button>
+        <button class="btn-secondary" style="font-size:12px;padding:8px 0">🧭 길안내</button>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<div class="bottom-bar">
+  <button class="btn-main">📍 내 주변 명당 찾기</button>
+  <button class="btn-bell">🔔</button>
+</div>
+
+<script>
+  // Tab switching
+  function switchTab(id) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  // Region bubble click
+  let selectedId = null;
+  function selectRegion(el) {
+    const id = el.dataset.id;
+    const name = el.dataset.name;
+    const prize = el.dataset.prize;
+    const count = el.dataset.count;
+    const top = el.dataset.top || '-';
+
+    if (selectedId === id) {
+      selectedId = null;
+      document.getElementById('detailCard').classList.remove('visible');
+      document.querySelectorAll('.region-bubble circle:not(.pulse-ring)').forEach(c => {
+        c.style.stroke = 'none';
+      });
+      return;
+    }
+
+    selectedId = id;
+    document.querySelectorAll('.region-bubble circle:not(.pulse-ring)').forEach(c => {
+      c.style.stroke = 'none';
+    });
+    el.querySelector('circle:not(.pulse-ring)').style.stroke = '#fff';
+    el.querySelector('circle:not(.pulse-ring)').style.strokeWidth = '0.6';
+
+    document.getElementById('detailName').textContent = name;
+    document.getElementById('detailSub').textContent = `총 ${count}회 배출 · 최고 명당: ${top}`;
+    document.getElementById('detailPrize').textContent = prize;
+    document.getElementById('detailCard').classList.add('visible');
+
+    // Scroll to detail
+    setTimeout(() => document.getElementById('detailCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+  }
+
+  // Pulse animation for hot regions
+  setInterval(() => {
+    document.querySelectorAll('.pulse-ring').forEach(el => {
+      const cur = parseFloat(el.getAttribute('r'));
+      const base = parseFloat(el.closest('g').querySelector('circle:not(.pulse-ring)').getAttribute('r'));
+      el.setAttribute('r', cur > base + 3 ? base + 1 : cur + 0.5);
+      el.setAttribute('opacity', cur > base + 3 ? '0.1' : '0.3');
+    });
+  }, 200);
+</script>
+
+</body>
+</html>
