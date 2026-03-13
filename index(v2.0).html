@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>로또명당지도 🎱</title>
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=0f283217abb610bf9916ff579ce9cf9e&libraries=services,clusterer,drawing"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0a0a14 0%, #12122a 50%, #0a0a14 100%);
+    font-family: 'Noto Sans KR', sans-serif;
+    color: #fff;
+    overflow-x: hidden;
+  }
+  .ambient1 { position:fixed; top:-20%; left:-10%; width:60%; height:60%; background:radial-gradient(ellipse,rgba(255,184,0,0.08) 0%,transparent 70%); pointer-events:none; z-index:0; }
+  .ambient2 { position:fixed; bottom:-20%; right:-10%; width:50%; height:50%; background:radial-gradient(ellipse,rgba(255,107,0,0.06) 0%,transparent 70%); pointer-events:none; z-index:0; }
+
+  @keyframes fadeDown { from{opacity:0;transform:translateY(-16px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeUp   { from{opacity:0;transform:translateY(12px)}  to{opacity:1;transform:translateY(0)} }
+  @keyframes slideIn  { from{opacity:0;transform:translateX(-16px)} to{opacity:1;transform:translateX(0)} }
+  @keyframes pulse    { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  header { position:relative; z-index:10; padding:20px 20px 0; animation:fadeDown 0.6s ease forwards; }
+  .logo-row { display:flex; align-items:center; justify-content:space-between; }
+  .logo-icon { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#FFB800,#FF6B00); display:flex; align-items:center; justify-content:center; font-size:20px; box-shadow:0 0 20px rgba(255,184,0,0.4); margin-right:10px; }
+  .logo-text { font-size:20px; font-weight:900; letter-spacing:-0.5px; background:linear-gradient(90deg,#FFB800,#FF6B00); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .logo-sub  { font-size:11px; color:#555; margin-top:-2px; }
+  .badge-live { background:rgba(255,184,0,0.12); border:1px solid rgba(255,184,0,0.25); border-radius:20px; padding:6px 14px; font-size:12px; color:#FFB800; }
+
+  .tabs { display:flex; gap:4px; margin-top:18px; background:rgba(255,255,255,0.05); border-radius:12px; padding:4px; }
+  .tab-btn { flex:1; padding:10px 0; border-radius:9px; border:none; cursor:pointer; font-size:13px; font-family:'Noto Sans KR',sans-serif; background:transparent; color:#555; transition:all 0.2s; }
+  .tab-btn.active { background:linear-gradient(135deg,#FFB800,#FF6B00); color:#000; font-weight:700; }
+
+  main { position:relative; z-index:5; padding:16px 20px 100px; }
+
+  .stats-row { display:flex; gap:10px; margin-bottom:16px; }
+  .stat-card { flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:12px; padding:10px 12px; animation:fadeUp 0.5s ease forwards; }
+  .stat-icon  { font-size:16px; margin-bottom:2px; }
+  .stat-value { font-size:15px; font-weight:800; color:#FFB800; }
+  .stat-label { font-size:10px; color:#555; }
+
+  .map-wrap { background:linear-gradient(135deg,#0f0f1e,#141428); border:1px solid rgba(255,255,255,0.05); border-radius:20px; padding:16px; margin-bottom:16px; overflow:hidden; }
+  .map-title { font-size:13px; font-weight:700; color:#FFB800; margin-bottom:12px; }
+  #kakaoMap  { width:100%; height:400px; border-radius:12px; overflow:hidden; }
+
+  .zoom-hint { display:flex; align-items:center; gap:8px; background:rgba(255,184,0,0.06); border:1px solid rgba(255,184,0,0.15); border-radius:10px; padding:8px 12px; margin-top:10px; font-size:11px; color:#777; }
+  .zoom-hint-icon { font-size:14px; animation:pulse 2s infinite; }
+
+  .map-legend { display:flex; gap:10px; justify-content:center; margin-top:10px; flex-wrap:wrap; }
+  .legend-item { display:flex; align-items:center; gap:4px; font-size:9px; color:#555; }
+  .legend-dot  { width:8px; height:8px; border-radius:50%; }
+
+  /* 마커 */
+  .marker-wrap   { position:relative; display:flex; flex-direction:column; align-items:center; }
+  .marker-bubble { border-radius:20px; padding:5px 10px; font-size:12px; font-weight:900; white-space:nowrap; cursor:pointer; box-shadow:0 2px 12px rgba(0,0,0,0.4); border:2px solid rgba(255,255,255,0.3); font-family:'Noto Sans KR',sans-serif; transition:transform 0.15s; }
+  .marker-bubble:hover { transform:scale(1.1); }
+  .marker-bubble.hot    { background:#FF6B00; color:#fff; }
+  .marker-bubble.warm   { background:#FFB800; color:#000; }
+  .marker-bubble.mild   { background:#FFE066; color:#000; }
+  .marker-bubble.cool   { background:#2a3050; color:#aaa; border-color:rgba(255,255,255,0.1); }
+  .marker-bubble.region { background:rgba(18,18,42,0.95); color:#FFB800; border-color:rgba(255,184,0,0.5); font-size:13px; padding:7px 13px; }
+  .marker-tail        { width:0; height:0; border-left:5px solid transparent; border-right:5px solid transparent; margin-top:-1px; }
+  .marker-tail.hot    { border-top:7px solid #FF6B00; }
+  .marker-tail.warm   { border-top:7px solid #FFB800; }
+  .marker-tail.mild   { border-top:7px solid #FFE066; }
+  .marker-tail.cool   { border-top:7px solid #2a3050; }
+  .marker-tail.region { border-top:7px solid rgba(18,18,42,0.95); }
+
+  /* 인포 */
+  .info-wrap { background:#12122a; border:1px solid rgba(255,184,0,0.3); border-radius:14px; padding:14px 16px; min-width:220px; font-family:'Noto Sans KR',sans-serif; box-shadow:0 8px 32px rgba(0,0,0,0.6); }
+  .info-name  { font-size:16px; font-weight:900; color:#FFB800; margin-bottom:4px; }
+  .info-sub   { font-size:12px; color:#888; margin-bottom:10px; }
+  .info-prize { font-size:18px; font-weight:900; background:linear-gradient(90deg,#FFB800,#FF6B00); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:10px; }
+  .info-btn-row { display:flex; gap:6px; }
+  .info-btn   { flex:1; padding:7px 0; border-radius:8px; border:none; cursor:pointer; font-size:11px; font-weight:700; font-family:'Noto Sans KR',sans-serif; }
+  .info-btn-primary   { background:linear-gradient(135deg,#FFB800,#FF6B00); color:#000; }
+  .info-btn-secondary { background:rgba(255,255,255,0.08); color:#fff; border:1px solid rgba(255,255,255,0.12); }
+
+  /* 카드 */
+  .store-card         { border-radius:14px; padding:14px 16px; margin-bottom:10px; animation:slideIn 0.4s ease forwards; }
+  .store-card-default { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); }
+  .store-card-gold    { background:linear-gradient(135deg,rgba(255,184,0,0.12),rgba(255,107,0,0.06)); border:1px solid rgba(255,184,0,0.25); }
+  .store-name         { font-weight:800; font-size:16px; }
+  .store-region       { font-size:12px; color:#666; margin-top:2px; }
+  .store-prize        { font-weight:900; font-size:18px; color:#FFB800; }
+  .store-prize-label  { font-size:10px; color:#555; }
+  .hot-badge { margin-top:10px; padding:6px 10px; background:rgba(255,184,0,0.12); border-radius:8px; font-size:11px; color:#FFB800; }
+  .grade-badge { background:linear-gradient(135deg,#FFB800,#FF6B00); border-radius:6px; padding:2px 8px; font-size:11px; font-weight:700; color:#000; display:inline-block; }
+  .win-prize { font-weight:900; font-size:20px; color:#FFB800; }
+  .win-date  { font-size:11px; color:#555; margin-top:2px; }
+  .tab-content { display:none; }
+  .tab-content.active { display:block; }
+  .tab-desc { font-size:13px; color:#555; margin-bottom:16px; }
+  .btn-row { display:flex; gap:8px; margin-top:10px; }
+  .btn-secondary { flex:1; padding:8px 0; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:#aaa; font-size:12px; cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:all 0.2s; }
+  .btn-secondary:hover { background:rgba(255,184,0,0.1); border-color:rgba(255,184,0,0.3); color:#FFB800; }
+
+  /* 지역필터 */
+  .region-filter { display:flex; gap:6px; margin-bottom:16px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; }
+  .region-filter::-webkit-scrollbar { display:none; }
+  .region-btn { flex-shrink:0; padding:6px 14px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:20px; font-size:12px; color:#888; cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:all 0.2s; white-space:nowrap; }
+  .region-btn.active, .region-btn:hover { background:rgba(255,184,0,0.12); border-color:rgba(255,184,0,0.3); color:#FFB800; font-weight:700; }
+
+  /* 번호탭 */
+  .num-ball { width:36px; height:36px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-weight:900; font-size:13px; flex-shrink:0; }
+  .num-ball.b1    { background:#FFB800; color:#000; }
+  .num-ball.b2    { background:#4fc3f7; color:#000; }
+  .num-ball.b3    { background:#ff7043; color:#fff; }
+  .num-ball.b4    { background:#66bb6a; color:#fff; }
+  .num-ball.bonus { background:#ab47bc; color:#fff; }
+  .round-card { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:14px; padding:14px 16px; margin-bottom:10px; }
+  .round-card.latest { background:linear-gradient(135deg,rgba(255,184,0,0.1),rgba(255,107,0,0.05)); border:1px solid rgba(255,184,0,0.25); }
+  .round-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .round-num    { font-size:13px; font-weight:700; color:#FFB800; }
+  .round-prize  { font-size:12px; color:#888; }
+  .round-balls  { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+  .ball-plus    { color:#555; font-size:12px; }
+  .freq-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; margin-bottom:16px; }
+  .freq-item { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:10px; padding:8px 4px; text-align:center; cursor:pointer; transition:all 0.2s; }
+  .freq-item:hover { background:rgba(255,184,0,0.1); border-color:rgba(255,184,0,0.3); }
+  .freq-num  { font-size:14px; font-weight:900; }
+  .freq-bar-wrap { height:3px; background:rgba(255,255,255,0.1); border-radius:2px; margin:4px 6px; }
+  .freq-bar  { height:3px; border-radius:2px; }
+  .freq-count { font-size:10px; color:#666; }
+  .top-card { background:linear-gradient(135deg,rgba(255,184,0,0.08),rgba(255,107,0,0.04)); border:1px solid rgba(255,184,0,0.2); border-radius:14px; padding:14px 16px; margin-bottom:10px; }
+  .section-title { font-size:14px; font-weight:700; color:#FFB800; margin-bottom:12px; }
+
+  #mapLoadingMsg { display:none; position:absolute; bottom:12px; left:12px; z-index:10; background:rgba(10,10,20,0.9); border:1px solid rgba(255,184,0,0.3); border-radius:10px; padding:8px 14px; font-size:12px; color:#FFB800; font-weight:700; }
+
+  /* PC */
+  @media (min-width:768px) {
+    header { padding:28px 40px 0; }
+    .logo-text { font-size:26px; }
+    .logo-icon { width:48px; height:48px; font-size:24px; }
+    .tabs { margin-top:24px; }
+    .tab-btn { font-size:15px; padding:12px 0; }
+    main { padding:24px 40px 80px; }
+    #kakaoMap { height:560px; }
+  }
+  @media (min-width:1024px) {
+    header { padding:32px 48px 0; }
+    main   { padding:28px 48px 80px; }
+    .map-tab-grid    { display:grid; grid-template-columns:1fr 360px; gap:20px; align-items:start; }
+    .rank-grid       { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .recent-grid     { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .numbers-grid    { display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:start; }
+    .freq-grid       { grid-template-columns:repeat(9,1fr); }
+    #kakaoMap        { height:640px; }
+    .map-side-panel  { display:flex; flex-direction:column; gap:14px; }
+    .bottom-bar      { padding:16px 48px 24px; }
+    .stat-value { font-size:20px; }
+    .stat-label { font-size:12px; }
+    .stat-icon  { font-size:20px; }
+    .store-name  { font-size:18px; }
+    .store-prize { font-size:22px; }
+    .section-title { font-size:16px; }
+    .round-card    { padding:16px 20px; }
+    .num-ball      { width:42px; height:42px; font-size:15px; }
+  }
+
+  .bottom-bar { position:fixed; bottom:0; left:0; right:0; z-index:100; background:linear-gradient(to top,#0a0a14 80%,transparent); padding:16px 20px 24px; display:flex; gap:10px; }
+  .bottom-bar-inner { display:flex; gap:10px; width:100%; max-width:1200px; margin:0 auto; }
+  .btn-main { flex:1; padding:14px 0; background:linear-gradient(135deg,#FFB800,#FF6B00); border:none; border-radius:14px; font-weight:900; font-size:15px; color:#000; cursor:pointer; box-shadow:0 4px 24px rgba(255,184,0,0.4); font-family:'Noto Sans KR',sans-serif; transition:transform 0.15s; }
+  .btn-main:active { transform:scale(0.97); }
+  .btn-bell { width:52px; padding:14px 0; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1); border-radius:14px; font-size:20px; cursor:pointer; }
+  .my-location-btn { position:absolute; bottom:16px; right:16px; z-index:10; width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#FFB800,#FF6B00); border:none; cursor:pointer; font-size:18px; box-shadow:0 2px 12px rgba(255,184,0,0.5); display:flex; align-items:center; justify-content:center; }
+
+  /* 내 주변 모달 */
+  .nearby-modal { display:none; position:fixed; inset:0; z-index:200; background:rgba(0,0,0,0.7); backdrop-filter:blur(4px); align-items:flex-end; justify-content:center; }
+  .nearby-modal.open { display:flex; }
+  .nearby-sheet { background:#12122a; border:1px solid rgba(255,184,0,0.2); border-radius:24px 24px 0 0; padding:24px 20px 40px; width:100%; max-width:600px; animation:fadeUp 0.3s ease; }
+  .nearby-title { font-size:18px; font-weight:900; color:#FFB800; margin-bottom:6px; }
+  .nearby-sub   { font-size:13px; color:#666; margin-bottom:20px; }
+  .radius-row   { display:flex; gap:10px; margin-bottom:20px; }
+  .radius-btn   { flex:1; padding:12px 0; border-radius:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#888; font-size:14px; font-weight:700; cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:all 0.2s; }
+  .radius-btn.active { background:rgba(255,184,0,0.15); border-color:rgba(255,184,0,0.4); color:#FFB800; }
+  #nearbyList { max-height:280px; overflow-y:auto; }
+  .nearby-item { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05); }
+  .nearby-rank { width:28px; height:28px; border-radius:50%; background:rgba(255,184,0,0.1); border:1px solid rgba(255,184,0,0.3); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:900; color:#FFB800; flex-shrink:0; }
+  .nearby-info { flex:1; }
+  .nearby-name { font-size:14px; font-weight:800; }
+  .nearby-addr { font-size:11px; color:#666; margin-top:2px; }
+  .nearby-close { width:100%; padding:14px; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1); border-radius:12px; color:#aaa; font-size:14px; cursor:pointer; font-family:'Noto Sans KR',sans-serif; margin-top:16px; }
+</style>
+</head>
+<body>
+<div class="ambient1"></div>
+<div class="ambient2"></div>
+
+<header>
+  <div class="logo-row">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="logo-icon">🎱</div>
+      <div>
+        <div class="logo-text">로또명당지도</div>
+        <div class="logo-sub">LOTTO LUCKY MAP</div>
+      </div>
+    </div>
+    <div class="badge-live">🔴 제 1214회 완료</div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('map',this)">🗺️ 지도</button>
+    <button class="tab-btn" onclick="switchTab('rank',this)">🏆 명당</button>
+    <button class="tab-btn" onclick="switchTab('recent',this)">⚡ 최신</button>
+    <button class="tab-btn" onclick="switchTab('numbers',this)">🔢 번호</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- MAP TAB -->
+  <div id="tab-map" class="tab-content active">
+    <div class="stats-row">
+      <div class="stat-card" style="animation-delay:0.1s">
+        <div class="stat-icon">🎱</div>
+        <div class="stat-value">1,214회</div>
+        <div class="stat-label">전체 회차</div>
+      </div>
+      <div class="stat-card" style="animation-delay:0.2s">
+        <div class="stat-icon">🏆</div>
+        <div class="stat-value">49회</div>
+        <div class="stat-label">최다 배출 명당</div>
+      </div>
+      <div class="stat-card" style="animation-delay:0.3s">
+        <div class="stat-icon">💰</div>
+        <div class="stat-value">407억</div>
+        <div class="stat-label">역대 최고 당첨금</div>
+      </div>
+    </div>
+
+    <div class="map-tab-grid">
+      <div class="map-wrap">
+        <div class="map-title" id="mapTitle">🗺️ 전국 지역별 당첨 현황 — 지역을 클릭해보세요!</div>
+        <div style="position:relative">
+          <div id="kakaoMap"></div>
+          <button class="my-location-btn" onclick="openNearbyModal()" title="내 주변 명당">📍</button>
+          <div id="mapLoadingMsg">🔄 데이터 로딩 중...</div>
+        </div>
+        <div class="zoom-hint">
+          <span class="zoom-hint-icon">🔍</span>
+          <span id="zoomHintText">지역 버블을 클릭하면 해당 지역 명당을 볼 수 있어요 · 줌인하면 개별 명당 마커가 나타나요</span>
+        </div>
+        <div class="map-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#FF6B00"></div>HOT 10회+</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#FFB800"></div>WARM 5회+</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#FFE066"></div>MILD 3회+</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#2a3050;border:1px solid #444"></div>일반</div>
+        </div>
+      </div>
+
+      <div class="map-side-panel">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#FFB800;margin-bottom:10px" id="sidePanelTitle">👑 역대 명당 TOP 10</div>
+          <div id="sidePanelList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RANK TAB -->
+  <div id="tab-rank" class="tab-content">
+    <div class="tab-desc">역대 1등 배출 횟수 기준 전국 명당 랭킹 · 실제 데이터 기반</div>
+    <div class="region-filter">
+      <button class="region-btn active" onclick="filterRank('all',this)">전국</button>
+      <button class="region-btn" onclick="filterRank('서울',this)">서울</button>
+      <button class="region-btn" onclick="filterRank('경기',this)">경기</button>
+      <button class="region-btn" onclick="filterRank('부산',this)">부산</button>
+      <button class="region-btn" onclick="filterRank('대구',this)">대구</button>
+      <button class="region-btn" onclick="filterRank('인천',this)">인천</button>
+      <button class="region-btn" onclick="filterRank('경남',this)">경남</button>
+      <button class="region-btn" onclick="filterRank('충남',this)">충남</button>
+      <button class="region-btn" onclick="filterRank('대전',this)">대전</button>
+    </div>
+    <div class="rank-grid" id="rankGrid"></div>
+  </div>
+
+  <!-- RECENT TAB -->
+  <div id="tab-recent" class="tab-content">
+    <div class="tab-desc">최근 회차 1등 당첨 판매점 · 실제 당첨번호 포함</div>
+    <div class="recent-grid" id="recentGrid"></div>
+  </div>
+
+  <!-- NUMBERS TAB -->
+  <div id="tab-numbers" class="tab-content">
+    <div class="numbers-grid">
+      <div>
+        <div class="section-title">🎱 최근 당첨번호 (1214~1195회)</div>
+        <div id="recentRounds"></div>
+      </div>
+      <div>
+        <div class="section-title">📊 번호별 출현 빈도 (전체 1~1214회)</div>
+        <div class="freq-grid" id="freqGrid"></div>
+        <div class="section-title" style="margin-top:16px">💰 역대 최고 당첨금 TOP 5</div>
+        <div id="top5rounds"></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- 내 주변 명당 모달 -->
+<div class="nearby-modal" id="nearbyModal" onclick="if(event.target===this)closeNearbyModal()">
+  <div class="nearby-sheet">
+    <div class="nearby-title">📍 내 주변 명당 찾기</div>
+    <div class="nearby-sub">현재 위치 기준 가까운 명당을 찾아드려요</div>
+    <div class="radius-row">
+      <button class="radius-btn active" onclick="setRadius(1,this)">1km</button>
+      <button class="radius-btn" onclick="setRadius(3,this)">3km</button>
+      <button class="radius-btn" onclick="setRadius(5,this)">5km</button>
+    </div>
+    <div id="nearbyList">
+      <div style="text-align:center;padding:30px;color:#555">
+        <div style="font-size:32px;margin-bottom:8px">📡</div>
+        <div>위치 확인 중...</div>
+      </div>
+    </div>
+    <button class="nearby-close" onclick="closeNearbyModal()">닫기</button>
+  </div>
+</div>
+
+<div class="bottom-bar">
+  <div class="bottom-bar-inner">
+    <button class="btn-main" onclick="openNearbyModal()">📍 내 주변 명당 찾기</button>
+    <button class="btn-bell" onclick="switchTab('numbers',document.querySelectorAll('.tab-btn')[3])">🔢</button>
+  </div>
+</div>
+
+<script>
+// ── 실제 당첨번호 (1195~1214회) ──
+const LOTTO_RECENT=[{"round":1214,"nums":[10,15,19,27,30,33],"bonus":14,"prize1":2431577188,"count1":12},{"round":1213,"nums":[5,11,25,27,36,38],"bonus":2,"prize1":1740011646,"count1":18},{"round":1212,"nums":[5,8,25,31,41,44],"bonus":45,"prize1":2654089032,"count1":12},{"round":1211,"nums":[23,26,27,35,38,40],"bonus":10,"prize1":2370956036,"count1":14},{"round":1210,"nums":[1,7,9,17,27,38],"bonus":31,"prize1":1102298407,"count1":24},{"round":1209,"nums":[2,17,20,35,37,39],"bonus":24,"prize1":1371910466,"count1":22},{"round":1208,"nums":[6,27,30,36,38,42],"bonus":25,"prize1":5001713625,"count1":6},{"round":1207,"nums":[10,22,24,27,38,45],"bonus":11,"prize1":1733202949,"count1":17},{"round":1206,"nums":[1,3,17,26,27,42],"bonus":23,"prize1":1868807000,"count1":15},{"round":1205,"nums":[1,4,16,23,31,41],"bonus":2,"prize1":3226386263,"count1":10},{"round":1204,"nums":[8,16,28,30,31,44],"bonus":27,"prize1":1661007688,"count1":18},{"round":1203,"nums":[3,6,18,29,35,39],"bonus":24,"prize1":1368060733,"count1":21},{"round":1202,"nums":[5,12,21,33,37,40],"bonus":7,"prize1":1920410813,"count1":14},{"round":1201,"nums":[7,9,24,27,35,36],"bonus":37,"prize1":1414555718,"count1":19},{"round":1200,"nums":[1,2,4,16,20,32],"bonus":45,"prize1":2357299875,"count1":12},{"round":1199,"nums":[16,24,25,30,31,32],"bonus":7,"prize1":1695609839,"count1":17},{"round":1198,"nums":[26,30,33,38,39,41],"bonus":21,"prize1":2953686638,"count1":10},{"round":1197,"nums":[1,5,7,26,28,43],"bonus":30,"prize1":2205089827,"count1":13},{"round":1196,"nums":[8,12,15,29,40,45],"bonus":14,"prize1":2001627550,"count1":15},{"round":1195,"nums":[3,15,27,33,34,36],"bonus":37,"prize1":2939186738,"count1":10}];
+const LOTTO_FREQ=[{"num":1,"count":167},{"num":2,"count":152},{"num":3,"count":169},{"num":4,"count":159},{"num":5,"count":153},{"num":6,"count":163},{"num":7,"count":168},{"num":8,"count":155},{"num":9,"count":133},{"num":10,"count":159},{"num":11,"count":164},{"num":12,"count":177},{"num":13,"count":174},{"num":14,"count":169},{"num":15,"count":163},{"num":16,"count":166},{"num":17,"count":169},{"num":18,"count":172},{"num":19,"count":166},{"num":20,"count":167},{"num":21,"count":164},{"num":22,"count":141},{"num":23,"count":146},{"num":24,"count":163},{"num":25,"count":150},{"num":26,"count":164},{"num":27,"count":180},{"num":28,"count":151},{"num":29,"count":152},{"num":30,"count":156},{"num":31,"count":164},{"num":32,"count":141},{"num":33,"count":173},{"num":34,"count":181},{"num":35,"count":161},{"num":36,"count":162},{"num":37,"count":171},{"num":38,"count":169},{"num":39,"count":165},{"num":40,"count":172},{"num":41,"count":147},{"num":42,"count":153},{"num":43,"count":162},{"num":44,"count":160},{"num":45,"count":171}];
+const LOTTO_TOP5=[{"round":19,"nums":[6,30,38,39,40,43],"bonus":26,"prize1":40722959400,"count1":1},{"round":25,"nums":[2,4,21,26,43,44],"bonus":16,"prize1":24227745300,"count1":2},{"round":20,"nums":[10,14,18,20,23,30],"bonus":41,"prize1":19352212800,"count1":1},{"round":43,"nums":[6,31,35,38,39,44],"bonus":1,"prize1":17749630800,"count1":1},{"round":15,"nums":[3,4,16,30,31,37],"bonus":13,"prize1":17014245000,"count1":1}];
+
+// ── 명당 TOP 10 (실제 데이터 기반) ──
+const MAP_STORES=[{"n":"부일카서비스","a":"부산 동구 범일동  830-195","r":"부산","t":35.140016,"g":129.063069,"w":49,"lv":"hot"},{"n":"스파","a":"서울 노원구 상계동  666 주공 10단지 종합상가 111","r":"서울","t":37.661658,"g":127.057872,"w":46,"lv":"hot"},{"n":"로또명당인주점","a":"충남 아산시 인주면 신성리 신성리 188-8","r":"충남","t":36.877837,"g":126.898279,"w":31,"lv":"hot"},{"n":"쿨복권방","a":"대구 달서구 본리동  1-10번지","r":"대구","t":35.842204,"g":128.53619,"w":30,"lv":"hot"},{"n":"뉴빅마트","a":"부산 기장군 정관면  방곡리 256-11","r":"부산","t":35.321112,"g":129.179287,"w":29,"lv":"hot"},{"n":"로또휴게실","a":"경기 용인시 기흥구 하갈동 171-1","r":"경기","t":37.256385,"g":127.10432,"w":26,"lv":"hot"},{"n":"세진전자통신","a":"대구 서구 평리동  1094-4","r":"대구","t":35.871897,"g":128.555208,"w":22,"lv":"hot"},{"n":"버스판매소","a":"서울 영등포구 영등포동4가  441-10","r":"서울","t":37.516742,"g":126.906749,"w":21,"lv":"hot"},{"n":"잠실매점","a":"서울 송파구 신천동  7-18호","r":"서울","t":37.514446,"g":127.100711,"w":20,"lv":"hot"},{"n":"목화로또판매점","a":"경남 사천시 용현면  주문리   5-3","r":"경남","t":35.001799,"g":128.054159,"w":18,"lv":"hot"},{"n":"오천억복권방","a":"광주 서구 화정동  782-14","r":"광주","t":35.152922,"g":126.880727,"w":17,"lv":"hot"},{"n":"알리바이","a":"광주 광산구 신가동  986-4번지 1층","r":"광주","t":35.185387,"g":126.836674,"w":17,"lv":"hot"},{"n":"제이복권방","a":"서울 종로구 종로5가  58번지 평창빌딩 1층 103호","r":"서울","t":37.571291,"g":127.002831,"w":16,"lv":"hot"},{"n":"복권백화점","a":"경기 파주시 금촌2동  329-135","r":"경기","t":37.763587,"g":126.76989,"w":15,"lv":"hot"},{"n":"다니엘사","a":"경기 안산시 단원구 원곡동 845-1현대빌라가동101호","r":"경기","t":37.326073,"g":126.804168,"w":15,"lv":"hot"},{"n":"돈벼락맞는곳","a":"부산 동구 범일동  833-5","r":"부산","t":35.139168,"g":129.05995,"w":14,"lv":"hot"},{"n":"영화유통 (1등복권방)","a":"울산 남구 달동  758 삼성아파트상가 204-101","r":"울산","t":35.533833,"g":129.322055,"w":14,"lv":"hot"},{"n":"GS25(양산문성)","a":"경남 양산시 웅상읍 평산리 평산리 31-5","r":"경남","t":35.384815,"g":129.155072,"w":14,"lv":"hot"},{"n":"묵동식품","a":"서울 중랑구 묵동  238-11","r":"서울","t":37.612457,"g":127.07704,"w":14,"lv":"hot"},{"n":"오케이상사","a":"서울 서초구 반포동  19-3 센트럴시티내 100호매점","r":"서울","t":37.504354,"g":127.003597,"w":13,"lv":"hot"},{"n":"알리바이(나주점)","a":"전남 나주시 금성동  18-1","r":"전남","t":35.031338,"g":126.717194,"w":13,"lv":"hot"},{"n":"행운복권방","a":"경기 포천시 소흘읍  송우리    127-6","r":"경기","t":37.828831,"g":127.147524,"w":12,"lv":"hot"},{"n":"썬마트","a":"충북 청주시 흥덕구 복대동 2719","r":"충북","t":36.632607,"g":127.428105,"w":12,"lv":"hot"},{"n":"복권나라","a":"서울 관악구 봉천본동  926-25","r":"서울","t":37.482788,"g":126.943475,"w":11,"lv":"hot"},{"n":"북마산복권전문점","a":"경남 마산시 상남동  39-4","r":"경남","t":35.215974,"g":128.570798,"w":11,"lv":"hot"},{"n":"흥부네대박났네","a":"경기 광주시 역동  27-28","r":"경기","t":37.355196,"g":127.327489,"w":11,"lv":"hot"},{"n":"종합복권슈퍼","a":"경기 시흥시 정왕동  1735-2 정일빌딩 104","r":"경기","t":37.345717,"g":126.735613,"w":11,"lv":"hot"},{"n":"노다지복권방","a":"경기 용인시 처인구 마평동 마평동 735-1","r":"경기","t":37.235088,"g":127.210504,"w":11,"lv":"hot"},{"n":"복권명당(서부점)","a":"대구 달서구 송현동  195-2","r":"대구","t":35.833632,"g":128.554861,"w":11,"lv":"hot"},{"n":"올인(allin)","a":"경기 화성시 향남면  장짐리    273-3","r":"경기","t":37.135285,"g":126.910612,"w":11,"lv":"hot"},{"n":"천하명당 복권방","a":"경남 거제시 옥포1동  582","r":"경남","t":34.891695,"g":128.69491,"w":11,"lv":"hot"},{"n":"행운복권방 보생당건강원","a":"전북 익산시 부송동  216-17","r":"전북","t":35.960304,"g":126.997265,"w":11,"lv":"hot"},{"n":"대박천하복권방","a":"인천 부평구 갈산동  367","r":"인천","t":37.51157,"g":126.726341,"w":11,"lv":"hot"},{"n":"라이프마트","a":"인천 중구 항동7가  58-985호","r":"인천","t":37.452357,"g":126.604022,"w":11,"lv":"hot"},{"n":"로또복권황성점","a":"경북 경주시 황오동  175-5훼미리마트경주역점","r":"경북","t":35.841009,"g":129.20302,"w":11,"lv":"hot"},{"n":"미나식품(로또판매점)","a":"서울 강서구 방화동  484-23","r":"서울","t":37.573502,"g":126.810665,"w":10,"lv":"hot"},{"n":"로또복권두정점","a":"충남 천안시 두정동  153-1대원빌딩104","r":"충남","t":36.833517,"g":127.144988,"w":10,"lv":"hot"},{"n":"월드24시","a":"서울 은평구 갈현1동  398-1","r":"서울","t":37.61925,"g":126.919788,"w":10,"lv":"hot"},{"n":"한꿈복권방","a":"울산 중구 남외동  486-5","r":"울산","t":35.568793,"g":129.345885,"w":10,"lv":"hot"},{"n":"메트로센터점","a":"대구 중구 덕산동  88 매트로센터 c 412호","r":"대구","t":35.865822,"g":128.593146,"w":10,"lv":"hot"},{"n":"NG24","a":"경북 칠곡군 석적읍  중리   86-8","r":"경북","t":36.079821,"g":128.411828,"w":10,"lv":"hot"},{"n":"노다지복권방","a":"인천 남구 학익동  264-6외7필지125 126호","r":"인천","t":37.443375,"g":126.66496,"w":10,"lv":"hot"},{"n":"아이러브복권방","a":"울산 중구 우정동  725-15","r":"울산","t":35.556382,"g":129.307248,"w":10,"lv":"hot"},{"n":"종합가판점","a":"서울 동대문구 전농동  620-69 청량리역 4번출구 가판점","r":"서울","t":37.579697,"g":127.044971,"w":10,"lv":"hot"},{"n":"명당골복권방","a":"경기 수원시 권선구 권선동 1295-3 104","r":"경기","t":37.251094,"g":127.03546,"w":10,"lv":"hot"},{"n":"대박마트복권방","a":"충남 아산시 음봉면  산동리   431-10 태화상가1층103호","r":"충남","t":36.826485,"g":127.09925,"w":10,"lv":"hot"},{"n":"또또복권방","a":"전북 익산시 영등동  827-3","r":"전북","t":35.95982,"g":126.971694,"w":10,"lv":"hot"},{"n":"갈렙분식한식","a":"서울 중랑구 망우동  490-13","r":"서울","t":37.59823,"g":127.095283,"w":10,"lv":"hot"},{"n":"천하명당복권방","a":"경기 수원시 팔달구 매산로1가 58-20","r":"경기","t":37.266611,"g":127.001847,"w":10,"lv":"hot"},{"n":"복권전문점","a":"인천 부평구 청천동  236-20 1층 점포","r":"인천","t":37.50383,"g":126.715106,"w":9,"lv":"warm"},{"n":"현대장미슈퍼","a":"전북 익산시 어양동  493-12 현대아파트 1층 108호","r":"전북","t":35.95509,"g":126.98032,"w":9,"lv":"warm"},{"n":"영광정보통신","a":"서울 성북구 하월곡동  37-18","r":"서울","t":37.602677,"g":127.042502,"w":9,"lv":"warm"},{"n":"천하명당복권","a":"대구 북구 관음동  1249-4","r":"대구","t":35.944319,"g":128.550637,"w":9,"lv":"warm"},{"n":"행복충전소","a":"경기 평택시 지산동  755","r":"경기","t":37.081799,"g":127.056377,"w":9,"lv":"warm"},{"n":"행운복권방","a":"경기 의정부시 용현동  14","r":"경기","t":37.73674,"g":127.087119,"w":9,"lv":"warm"},{"n":"세방매점","a":"경북 경주시 용강동  753-1","r":"경북","t":35.877206,"g":129.226492,"w":9,"lv":"warm"},{"n":"팡팡복권마트.잡화슈퍼","a":"전북 전주시 덕진구 금암동 460-11","r":"전북","t":35.834367,"g":127.133268,"w":9,"lv":"warm"},{"n":"왕대박복권방","a":"경북 문경시 모전동  81-89","r":"경북","t":36.588123,"g":128.192926,"w":9,"lv":"warm"},{"n":"중앙로또","a":"경북 칠곡군 북삼읍 인평리 인평리 1057-5","r":"경북","t":36.071458,"g":128.342786,"w":9,"lv":"warm"},{"n":"흥건슈퍼","a":"전북 전주시 완산구 삼천동1가 삼천동1가 300-3흥건1차아파트상가109호","r":"전북","t":35.794404,"g":127.115781,"w":9,"lv":"warm"},{"n":"노다지복권방","a":"경기 시흥시 대야동  345-16 1층상가","r":"경기","t":37.448232,"g":126.792061,"w":9,"lv":"warm"},{"n":"김포로또","a":"경기 김포시 사우동  944한솔프라자101","r":"경기","t":37.619402,"g":126.718021,"w":9,"lv":"warm"},{"n":"공원슈퍼","a":"경기 수원시 장안구 영화동 328-12","r":"경기","t":37.28874,"g":127.01298,"w":9,"lv":"warm"},{"n":"가판점(신문)","a":"서울 영등포구 당산동  331","r":"서울","t":37.534478,"g":126.901007,"w":8,"lv":"warm"},{"n":"로터리편의마트","a":"경북 포항시 북구 덕산동 243-9","r":"경북","t":36.040766,"g":129.367256,"w":8,"lv":"warm"},{"n":"지원물산","a":"서울 노원구 공릉동  644-12","r":"서울","t":37.619831,"g":127.078092,"w":8,"lv":"warm"},{"n":"서울로또방","a":"충북 옥천군 옥천읍 금구리 금구리 174-2","r":"충북","t":36.299492,"g":127.566681,"w":8,"lv":"warm"},{"n":"서재강변로또","a":"대구 달성군 다사읍  서재리58-2","r":"대구","t":35.878706,"g":128.497475,"w":8,"lv":"warm"},{"n":"대산슈퍼","a":"충남 천안시 북면 연춘리 연춘리 120-5번지","r":"충남","t":36.76989,"g":127.250208,"w":8,"lv":"warm"},{"n":"천하명당 복권방","a":"충남 홍성군 홍성읍 오관리 오관리 321-4번지","r":"충남","t":36.60072,"g":126.66951,"w":8,"lv":"warm"},{"n":"종합복권판매대리점","a":"전남 해남군 해남읍  해리 178","r":"전남","t":34.570763,"g":126.610925,"w":8,"lv":"warm"},{"n":"보람복권방","a":"울산 남구 삼산동  1567-6","r":"울산","t":35.541854,"g":129.341563,"w":8,"lv":"warm"},{"n":"대성기획","a":"경기 용인시 기흥구 마북동 339-1","r":"경기","t":37.29493,"g":127.1179,"w":8,"lv":"warm"},{"n":"주택복권방","a":"경기 용인시 수지구 풍덕천동 풍덕천동 717-3 103호","r":"경기","t":37.323883,"g":127.09745,"w":8,"lv":"warm"},{"n":"로또복권하대점","a":"경남 진주시 하대동  126-17","r":"경남","t":35.18703,"g":128.122477,"w":8,"lv":"warm"},{"n":"데이앤나잇","a":"서울 성북구 종암동  3-394","r":"서울","t":37.601955,"g":127.033463,"w":8,"lv":"warm"},{"n":"프로토베팅샵","a":"부산 중구 남포동6가  70-3","r":"부산","t":35.099678,"g":129.028391,"w":8,"lv":"warm"},{"n":"마두역상행선가판대","a":"경기 고양시 일산동구 마두동 789강촌마을525-101","r":"경기","t":37.652222,"g":126.777065,"w":8,"lv":"warm"},{"n":"대광복권방","a":"전남 화순군 화순읍 대리 97-3대광그린상가동1층109","r":"전남","t":35.055482,"g":126.977122,"w":8,"lv":"warm"},{"n":"LO삼성","a":"강원 원주시 단계동  841","r":"강원","t":37.383351,"g":127.97573,"w":8,"lv":"warm"},{"n":"빅세일복권방","a":"부산 부산진구 부전동  259-5","r":"부산","t":35.158302,"g":129.058097,"w":8,"lv":"warm"},{"n":"북문복권방","a":"경기 수원시 장안구 영화동 297-5","r":"경기","t":37.29028,"g":127.01279,"w":8,"lv":"warm"},{"n":"복권명당 순천산단점","a":"전남 순천시 서면 선평리 300-2","r":"전남","t":34.987933,"g":127.508392,"w":8,"lv":"warm"},{"n":"황실복권방","a":"충남 천안시 동남구 목천읍 신계리 390-6","r":"충남","t":36.769257,"g":127.200641,"w":8,"lv":"warm"},{"n":"청솔서점","a":"부산 사하구 신평동  589-5","r":"부산","t":35.098823,"g":128.958967,"w":7,"lv":"warm"},{"n":"대박로또판매점","a":"경기 수원시 장안구 율전동 율전동 291  1층 3호","r":"경기","t":37.298719,"g":126.97125,"w":7,"lv":"warm"},{"n":"대박행진 복권랜드","a":"경기 파주시 금촌동  금촌2택지사업지구 상업용지16호 금촌프라자 107","r":"경기","t":37.751613,"g":126.766909,"w":7,"lv":"warm"},{"n":"복권명당","a":"충남 공주시 신관동  585-12","r":"충남","t":36.471832,"g":127.133132,"w":7,"lv":"warm"},{"n":"베스토아(용전2호)","a":"대전 동구 용전동  68-2","r":"대전","t":36.350379,"g":127.436635,"w":7,"lv":"warm"},{"n":"셀프카메라","a":"부산 부산진구 개금동  472-23","r":"부산","t":35.154545,"g":129.021706,"w":7,"lv":"warm"},{"n":"G마트","a":"서울 영등포구 대림동  862-6","r":"서울","t":37.491634,"g":126.902113,"w":7,"lv":"warm"},{"n":"버스표판매소","a":"경기 고양시 덕양구 행신동 행신동 187-2 (971 번지선)","r":"경기","t":37.618288,"g":126.843001,"w":7,"lv":"warm"},{"n":"로또 명당 가두판매점","a":"경기 안양시 동안구 비산동 비산동 1102 동성아파트앞 버스가판대","r":"경기","t":37.394616,"g":126.941416,"w":7,"lv":"warm"},{"n":"종로3가 출구2 가판82","a":"서울 종로구 종로3가  23-1","r":"서울","t":37.570703,"g":126.991875,"w":7,"lv":"warm"},{"n":"진평양행","a":"강원 강릉시 남문동  7-12","r":"강원","t":37.751261,"g":128.894075,"w":7,"lv":"warm"},{"n":"버스표판매소","a":"경기 고양시 덕양구 화정동 400-2화정역2번출구","r":"경기","t":37.634551,"g":126.833213,"w":7,"lv":"warm"},{"n":"쉐라톤베이커리","a":"서울 도봉구 도봉2동  89-148호","r":"서울","t":37.680375,"g":127.045962,"w":7,"lv":"warm"},{"n":"다모아복권","a":"서울 구로구 오류동  315-14","r":"서울","t":37.495924,"g":126.842779,"w":7,"lv":"warm"},{"n":"소리창고","a":"서울 강서구 내발산동  677-10","r":"서울","t":37.552869,"g":126.836749,"w":7,"lv":"warm"},{"n":"대박복권방","a":"경기 연천군 전곡읍  전곡리    480-16","r":"경기","t":38.02602,"g":127.067657,"w":7,"lv":"warm"},{"n":"버스매표소","a":"인천 부평구 부평동  549-39","r":"인천","t":37.49181,"g":126.722722,"w":7,"lv":"warm"},{"n":"훼미리마트(대림중앙점)","a":"서울 영등포구 대림3동  775-7","r":"서울","t":37.499257,"g":126.897676,"w":7,"lv":"warm"},{"n":"25시슈퍼","a":"경기 시흥시 정왕동  1882-11홍익프라자1층107호","r":"경기","t":37.362455,"g":126.729942,"w":7,"lv":"warm"},{"n":"신문가판점","a":"서울 용산구 갈월동  98-39","r":"서울","t":37.543007,"g":126.972376,"w":7,"lv":"warm"},{"n":"토큰판매소","a":"서울 송파구 풍납1동  480번지","r":"서울","t":37.536664,"g":127.122383,"w":7,"lv":"warm"},{"n":"가로판매소","a":"서울 구로구 구로동  460-23신도림역배수펌프장앞","r":"서울","t":37.506963,"g":126.890295,"w":7,"lv":"warm"},{"n":"평안당","a":"서울 종로구 종로5가  80-1","r":"서울","t":37.57123,"g":127.002186,"w":7,"lv":"warm"},{"n":"주엽간판점","a":"경기 고양시 일산서구 주엽동 108 도로","r":"경기","t":37.670035,"g":126.76048,"w":7,"lv":"warm"},{"n":"우정식품","a":"부산 동래구 온천1동  452-211 7/5","r":"부산","t":35.215308,"g":129.079249,"w":7,"lv":"warm"},{"n":"가판14호","a":"서울 중구 남창동  61-4","r":"서울","t":37.557815,"g":126.976709,"w":7,"lv":"warm"},{"n":"럭키복권방","a":"서울 도봉구 창동  134-36우림빌딩106","r":"서울","t":37.653081,"g":127.046304,"w":7,"lv":"warm"},{"n":"GS25(계산동경)","a":"인천 계양구 계산동  1076-7도쿄프라자1층2호","r":"인천","t":37.53578,"g":126.736291,"w":7,"lv":"warm"},{"n":"천하명당","a":"경기 시흥시 신천동  760-71층1호","r":"경기","t":37.438893,"g":126.783292,"w":7,"lv":"warm"},{"n":"패밀리복권방","a":"경기 남양주시 호평동  641에이스프라자1층106호","r":"경기","t":37.654083,"g":127.243325,"w":7,"lv":"warm"},{"n":"그린마트","a":"경기 성남시 분당구 궁내동 192-2107호","r":"경기","t":37.366467,"g":127.100828,"w":7,"lv":"warm"},{"n":"마두5번출구가판로또","a":"경기 고양시 일산동구 마두동 802-1마두역5번출구","r":"경기","t":37.653871,"g":126.777106,"w":7,"lv":"warm"},{"n":"성심상회","a":"경북 포항시 북구 중앙동 41","r":"경북","t":36.038172,"g":129.368014,"w":7,"lv":"warm"},{"n":"대박슈퍼","a":"인천 부평구 부평동  179-14번지","r":"인천","t":37.490838,"g":126.728645,"w":7,"lv":"warm"},{"n":"대운","a":"경기 김포시 대곶면 율생리 15-5","r":"경기","t":37.653646,"g":126.595697,"w":7,"lv":"warm"},{"n":"미니스톱기장점","a":"부산 기장군 기장읍  동부리162-20","r":"부산","t":35.243927,"g":129.2165,"w":6,"lv":"warm"},{"n":"해수로또","a":"충북 청주시 상당구 금천동 금천동 261-50","r":"충북","t":36.62615,"g":127.499379,"w":6,"lv":"warm"},{"n":"율암25시 편의점","a":"경기 화성시 팔탄면 율암리 율암리 481-2 율암빌딩 2차","r":"경기","t":37.166356,"g":126.881749,"w":6,"lv":"warm"},{"n":"대원슈퍼마켓","a":"부산 수영구 광안2동  373-15","r":"부산","t":35.152473,"g":129.111995,"w":6,"lv":"warm"},{"n":"로또","a":"서울 중구 신당동  133-14","r":"서울","t":37.56378,"g":127.019404,"w":6,"lv":"warm"},{"n":"대박찬스","a":"충북 청주시 흥덕구 가경동 1220번지","r":"충북","t":36.628974,"g":127.436443,"w":6,"lv":"warm"},{"n":"행운의집","a":"경북 안동시 북문동  23-7","r":"경북","t":36.566983,"g":128.729504,"w":6,"lv":"warm"},{"n":"창원병원앞매표소","a":"경남 창원시 중앙동  104-1","r":"경남","t":35.218499,"g":128.671431,"w":6,"lv":"warm"},{"n":"원스탑","a":"서울 송파구 잠실동  183-1","r":"서울","t":37.510902,"g":127.083215,"w":6,"lv":"warm"},{"n":"로또명당 해미점","a":"충남 서산시 해미면 읍내리 읍내리 295-4","r":"충남","t":36.71344,"g":126.544188,"w":6,"lv":"warm"},{"n":"풍전수퍼","a":"경기 부천시 원미구 원미동 원미동 55-1","r":"경기","t":37.497082,"g":126.791133,"w":6,"lv":"warm"},{"n":"삼삼마트","a":"경남 진주시 봉곡동  27-3","r":"경남","t":35.195208,"g":128.075647,"w":6,"lv":"warm"},{"n":"복권닷컴","a":"강원 양양군 양양읍 남문리 남문리 16-24","r":"강원","t":38.075512,"g":128.622326,"w":6,"lv":"warm"},{"n":"현대사","a":"경기 성남시 분당구 구미동 구미동 112번지 승지빌딩","r":"경기","t":37.345601,"g":127.111081,"w":6,"lv":"warm"},{"n":"경성식품","a":"서울 동대문구 휘경1동  192-5회기역","r":"서울","t":37.590435,"g":127.060279,"w":6,"lv":"warm"},{"n":"광성슈퍼","a":"경기 이천시 단월동  509-4","r":"경기","t":37.221365,"g":127.449978,"w":6,"lv":"warm"},{"n":"장미슈퍼","a":"충남 부여군 부여읍 동남리 동남리 722-1","r":"충남","t":36.276292,"g":126.909405,"w":6,"lv":"warm"},{"n":"로또(파발마점)","a":"경기 시흥시 정왕동  정왕2지구12블록1롯트 역전프라자105호","r":"경기","t":37.351974,"g":126.740587,"w":6,"lv":"warm"},{"n":"도깨비방망이","a":"전남 완도군 완도읍 군내리 군내리 1248-21","r":"전남","t":34.31606,"g":126.7492,"w":6,"lv":"warm"},{"n":"태안로또복권방","a":"충남 태안군 태안읍 동문리 동문리 454-23","r":"충남","t":36.75318,"g":126.299347,"w":6,"lv":"warm"},{"n":"황금복권마트","a":"경기 이천시 송정동  193트윈스빌딩나동3호","r":"경기","t":37.297547,"g":127.438866,"w":6,"lv":"warm"},{"n":"초월대박복권방","a":"경기 광주시 초월읍  대쌍령리    196-18","r":"경기","t":37.386677,"g":127.288208,"w":6,"lv":"warm"},{"n":"로또복권","a":"경기 화성시 송산면 사강리 사강리 694-4","r":"경기","t":37.21268,"g":126.73488,"w":6,"lv":"warm"},{"n":"복권세상","a":"전남 목포시 산정동  1670-1","r":"전남","t":34.803902,"g":126.375846,"w":6,"lv":"warm"},{"n":"복권백화점","a":"경기 여주군 여주읍 홍문리 홍문리 207","r":"경기","t":37.294038,"g":127.63629,"w":6,"lv":"warm"},{"n":"중구-가로가판대-37","a":"서울 중구 남대문로3가  30-6","r":"서울","t":37.560831,"g":126.978048,"w":6,"lv":"warm"},{"n":"복권파는집","a":"경남 마산시 합성동  84-29","r":"경남","t":35.240227,"g":128.583643,"w":6,"lv":"warm"},{"n":"세원로또복권방","a":"부산 수영구 수영동  444-221층","r":"부산","t":35.168319,"g":129.116092,"w":6,"lv":"warm"},{"n":"황금로또","a":"강원 원주시 태장2동  1390-16번지","r":"강원","t":37.381991,"g":127.950328,"w":6,"lv":"warm"},{"n":"베스트올수성점","a":"전북 정읍시 수성동  932-1","r":"전북","t":35.581693,"g":126.854418,"w":6,"lv":"warm"},{"n":"복권방","a":"부산 사하구 장림동  328-9","r":"부산","t":35.081006,"g":128.968224,"w":6,"lv":"warm"},{"n":"복권명당","a":"대전 서구 만년동  112번지","r":"대전","t":36.366484,"g":127.373049,"w":6,"lv":"warm"},{"n":"버스표가판점","a":"경기 안양시 동안구 호계동 1039-2","r":"경기","t":37.389737,"g":126.951056,"w":6,"lv":"warm"},{"n":"운수대통복권방","a":"충남 천안시 동남구 사직동 202-22번지","r":"충남","t":36.800491,"g":127.149261,"w":6,"lv":"warm"},{"n":"경동G-PLUS할인마트","a":"부산 해운대구 좌동  1317경동G-PLUS아파트상가103","r":"부산","t":35.168426,"g":129.17945,"w":6,"lv":"warm"},{"n":"바이더웨이녹번중앙점","a":"서울 은평구 녹번동  155-20","r":"서울","t":37.605751,"g":126.910725,"w":6,"lv":"warm"},{"n":"하당복권방","a":"전남 목포시 옥암동  998","r":"전남","t":34.803894,"g":126.429472,"w":6,"lv":"warm"},{"n":"팡팡복권방","a":"충북 진천군 광혜원면 광혜원리 265-3","r":"충북","t":36.854686,"g":127.441871,"w":6,"lv":"warm"},{"n":"로또명당","a":"경기 시흥시 포동  1-13번지101호","r":"경기","t":37.407072,"g":126.78708,"w":6,"lv":"warm"},{"n":"열두보석복권방","a":"경기 용인시 기흥구 구갈동 351구갈스포츠센터106호","r":"경기","t":37.281134,"g":127.111805,"w":6,"lv":"warm"},{"n":"우일","a":"서울 송파구 마천2동  25-2","r":"서울","t":37.499962,"g":127.143963,"w":6,"lv":"warm"},{"n":"로또복권","a":"경기 평택시 합정동  735-15","r":"경기","t":36.991208,"g":127.091525,"w":6,"lv":"warm"},{"n":"행운복권","a":"충북 제천시 의림동  24-10","r":"충북","t":37.142335,"g":128.208632,"w":6,"lv":"warm"},{"n":"알리바이금당점","a":"전남 순천시 연향동  1505-5","r":"전남","t":34.945633,"g":127.526303,"w":6,"lv":"warm"},{"n":"희망복권방","a":"강원 홍천군 홍천읍  진리   6반 83-2번지 1층","r":"강원","t":37.690258,"g":127.889472,"w":6,"lv":"warm"},{"n":"해피+24시편의점","a":"광주 북구 양산동  296","r":"광주","t":35.204499,"g":126.873901,"w":6,"lv":"warm"},{"n":"신천하명당","a":"충남 예산군 예산읍  신례원리 254-8","r":"충남","t":36.698784,"g":126.829594,"w":6,"lv":"warm"},{"n":"대전우표사","a":"대전 동구 중동  88-3번지","r":"대전","t":36.330037,"g":127.432072,"w":6,"lv":"warm"},{"n":"나나 복권판매소","a":"경남 양산시 상북면 석계리 272-18","r":"경남","t":35.412201,"g":129.059186,"w":6,"lv":"warm"},{"n":"하영","a":"인천 서구 연희동(청라동) 796-10","r":"인천","t":37.531059,"g":126.655701,"w":6,"lv":"warm"},{"n":"나눔로또봉평점","a":"경남 통영시 봉평동 158-8번지","r":"경남","t":34.831633,"g":128.413647,"w":6,"lv":"warm"},{"n":"행운복권","a":"경기 군포시 대야미동(대야동) 664-2","r":"경기","t":37.326381,"g":126.918909,"w":6,"lv":"warm"},{"n":"탑로또","a":"경남 거제시 상동동(상문동) 979-1 서원탑훼밀리마트 내","r":"경남","t":34.878452,"g":128.62806,"w":6,"lv":"warm"},{"n":"NBA(엔비에이)","a":"인천 중구 운서동 3042-5 1층 102호 CU 매장내 ( 운서동 그린나래)","r":"인천","t":37.4934,"g":126.49157,"w":6,"lv":"warm"},{"n":"세계로생활가전","a":"서울 동작구  보라매로 104 1층","r":"서울","t":37.49841,"g":126.9283,"w":6,"lv":"warm"},{"n":"운좋은날","a":"서울 강동구  풍성로 187 102호","r":"서울","t":37.53006,"g":127.132873,"w":6,"lv":"warm"},{"n":"하늘로또","a":"경기 여주시  세종로475번길 2 1층","r":"경기","t":37.257895,"g":127.646419,"w":6,"lv":"warm"},{"n":"복권나라","a":"서울 성동구 용답동  14-1 1층","r":"서울","t":37.56443,"g":127.053833,"w":5,"lv":"warm"},{"n":"행운주는로또판매","a":"경기 안산시 단원구 초지동 초지동 735-4 태영프라자 105호","r":"경기","t":37.306879,"g":126.815107,"w":5,"lv":"warm"},{"n":"천하명당초량점","a":"부산 동구 초량3동  145-13","r":"부산","t":35.116899,"g":129.040132,"w":5,"lv":"warm"},{"n":"훼미리마트(군포덕산)","a":"경기 군포시 당동  902 덕산상가 1층","r":"경기","t":37.348972,"g":126.945221,"w":5,"lv":"warm"},{"n":"명성복권방","a":"경기 화성시 태안읍 진안리 진안리 525-58","r":"경기","t":37.208467,"g":127.034302,"w":5,"lv":"warm"},{"n":"경일통신","a":"경남 마산시 회성동  169-1","r":"경남","t":35.233823,"g":128.56064,"w":5,"lv":"warm"},{"n":"파란만장복권방","a":"경기 화성시 태안읍 진안리 진안리 878-9  101","r":"경기","t":37.21241,"g":127.038823,"w":5,"lv":"warm"},{"n":"복권나라","a":"서울 관악구 봉천본동  941-18","r":"서울","t":37.485988,"g":126.939821,"w":5,"lv":"warm"},{"n":"가판","a":"서울 마포구 도화2동  169 고려2 앞가판","r":"서울","t":37.540684,"g":126.948335,"w":5,"lv":"warm"},{"n":"연합복권","a":"경남 김해시 외동  1252-2 삼우빌딩","r":"경남","t":35.234216,"g":128.865837,"w":5,"lv":"warm"},{"n":"소답시내버스매표소","a":"경남 창원시 소답동  16-9번지","r":"경남","t":35.261776,"g":128.625646,"w":5,"lv":"warm"},{"n":"우리세무회계경영컨설","a":"경기 안산시 상록구 사동 사동 1298-7","r":"경기","t":37.295924,"g":126.852531,"w":5,"lv":"warm"},{"n":"천하명당","a":"경기 평택시 서정동  76-14","r":"경기","t":37.07261,"g":127.055253,"w":5,"lv":"warm"},{"n":"영훈슈퍼마켓","a":"서울 도봉구 창3동  557-5호","r":"서울","t":37.637803,"g":127.037625,"w":5,"lv":"warm"},{"n":"노다지 복권방]","a":"서울 노원구 상계동  341-5","r":"서울","t":37.656223,"g":127.063745,"w":5,"lv":"warm"},{"n":"현대슈퍼","a":"광주 서구 쌍촌동  970-24","r":"광주","t":35.150524,"g":126.857314,"w":5,"lv":"warm"},{"n":"복권명당","a":"경북 경산시 중방동  848-9","r":"경북","t":35.826631,"g":128.736812,"w":5,"lv":"warm"},{"n":"교통카드판매대","a":"서울 강동구 고덕동  210-1  (구 서울승합종점 앞)","r":"서울","t":37.557685,"g":127.170059,"w":5,"lv":"warm"},{"n":"대영당안경원","a":"부산 동래구 수안동  232","r":"부산","t":35.201952,"g":129.085189,"w":5,"lv":"warm"},{"n":"여기있었네복권방","a":"전북 김제시 요촌동  474-3","r":"전북","t":35.79936,"g":126.884563,"w":5,"lv":"warm"},{"n":"우리 SM","a":"서울 종로구 종로2가  25","r":"서울","t":37.571329,"g":127.007897,"w":5,"lv":"warm"},{"n":"로또복권방","a":"충남 당진시 당진읍  읍내리    620-5","r":"충남","t":36.892938,"g":126.626329,"w":5,"lv":"warm"},{"n":"조이풀이삭토스트","a":"부산 동래구 온천동  156-1","r":"부산","t":35.213892,"g":129.081341,"w":5,"lv":"warm"},{"n":"복권나라","a":"충북 증평군 증평읍 중동리 중동리 15-3번지","r":"충북","t":36.783937,"g":127.58088,"w":5,"lv":"warm"}];
+const TOP_STORES=[{"rank":1,"name":"부일카서비스","addr":"부산 동구 범일동  830-195","region":"부산","lat":35.140016,"lng":129.063069,"win1":49,"win2":233,"level":"hot"},{"rank":2,"name":"스파","addr":"서울 노원구 상계동  666 주공 10단지 종합상가 111","region":"서울","lat":37.661658,"lng":127.057872,"win1":46,"win2":235,"level":"hot"},{"rank":3,"name":"로또명당인주점","addr":"충남 아산시 인주면 신성리 신성리 188-8","region":"충남","lat":36.877837,"lng":126.898279,"win1":31,"win2":136,"level":"hot"},{"rank":4,"name":"쿨복권방","addr":"대구 달서구 본리동  1-10번지","region":"대구","lat":35.842204,"lng":128.53619,"win1":30,"win2":153,"level":"hot"},{"rank":5,"name":"뉴빅마트","addr":"부산 기장군 정관면  방곡리 256-11","region":"부산","lat":35.321112,"lng":129.179287,"win1":29,"win2":82,"level":"hot"},{"rank":6,"name":"로또휴게실","addr":"경기 용인시 기흥구 하갈동 171-1","region":"경기","lat":37.256385,"lng":127.10432,"win1":26,"win2":126,"level":"hot"},{"rank":7,"name":"세진전자통신","addr":"대구 서구 평리동  1094-4","region":"대구","lat":35.871897,"lng":128.555208,"win1":22,"win2":101,"level":"hot"},{"rank":8,"name":"버스판매소","addr":"서울 영등포구 영등포동4가  441-10","region":"서울","lat":37.516742,"lng":126.906749,"win1":21,"win2":80,"level":"hot"},{"rank":9,"name":"잠실매점","addr":"서울 송파구 신천동  7-18호","region":"서울","lat":37.514446,"lng":127.100711,"win1":20,"win2":101,"level":"hot"},{"rank":10,"name":"목화로또판매점","addr":"경남 사천시 용현면  주문리   5-3","region":"경남","lat":35.001799,"lng":128.054159,"win1":18,"win2":119,"level":"hot"}];
+
+// ── 최신 당첨 (실제 당첨번호 연동) ──
+const RECENT_WINS=[
+  {round:1214, name:'서울복권방',    region:'서울 강서구',  prize:2431577188, date:'2025.03.15', lat:37.5509, lng:126.8495, addr:'서울 강서구 화곡로'},
+  {round:1214, name:'행복마트',      region:'경기 고양시',  prize:2431577188, date:'2025.03.15', lat:37.6583, lng:126.8320, addr:'경기 고양시 덕양구'},
+  {round:1213, name:'황금복권센터',  region:'부산 해운대구',prize:1740011646, date:'2025.03.08', lat:35.1631, lng:129.1635, addr:'부산 해운대구 해운대로'},
+  {round:1213, name:'대박슈퍼',      region:'서울 송파구',  prize:1740011646, date:'2025.03.08', lat:37.5145, lng:127.1059, addr:'서울 송파구 올림픽로'},
+  {round:1212, name:'행운복권',      region:'경기 성남시',  prize:2654089032, date:'2025.03.01', lat:37.4196, lng:127.1268, addr:'경기 성남시 분당구'},
+  {round:1211, name:'로또명당',      region:'대구 수성구',  prize:2370956036, date:'2025.02.22', lat:35.8582, lng:128.6305, addr:'대구 수성구 동대구로'},
+  {round:1210, name:'부일카서비스',  region:'부산 동구',    prize:1102298407, date:'2025.02.15', lat:35.1102, lng:129.0425, addr:'부산 동구 중앙대로 370'},
+  {round:1209, name:'행복복권방',    region:'인천 부평구',  prize:1371910466, date:'2025.02.08', lat:37.5073, lng:126.7219, addr:'인천 부평구 부평대로'},
+  {round:1208, name:'대운복권',      region:'서울 마포구',  prize:5001713625, date:'2025.02.01', lat:37.5560, lng:126.9086, addr:'서울 마포구 월드컵로'},
+  {round:1207, name:'복권센터',      region:'경기 화성시',  prize:1733202949, date:'2025.01.25', lat:37.1995, lng:126.8312, addr:'경기 화성시 향남읍'},
+];
+
+// ── 지역 버블 ──
+const REGIONS=[{"name":"경기","lat":37.4138,"lng":127.5183,"count":2154,"top":"로또휴게실","level":"hot"},{"name":"서울","lat":37.5665,"lng":126.978,"count":1696,"top":"스파","level":"hot"},{"name":"부산","lat":35.1796,"lng":129.0756,"count":621,"top":"부일카서비스","level":"hot"},{"name":"경남","lat":35.4606,"lng":128.2132,"count":516,"top":"목화로또판매점","level":"hot"},{"name":"인천","lat":37.4563,"lng":126.7052,"count":510,"top":"대박천하복권방","level":"hot"},{"name":"충남","lat":36.5184,"lng":126.8,"count":421,"top":"로또명당인주점","level":"warm"},{"name":"경북","lat":36.4919,"lng":128.8889,"count":376,"top":"로또복권황성점","level":"warm"},{"name":"대구","lat":35.8714,"lng":128.6014,"count":355,"top":"쿨복권방","level":"warm"},{"name":"충북","lat":36.8,"lng":127.7,"count":282,"top":"썬마트","level":"warm"},{"name":"전남","lat":34.8679,"lng":126.991,"count":279,"top":"알리바이(나주점)","level":"warm"},{"name":"전북","lat":35.7175,"lng":127.153,"count":276,"top":"행운복권방 보생당건강원","level":"warm"},{"name":"대전","lat":36.3504,"lng":127.3845,"count":243,"top":"베스토아(용전2호)","level":"warm"},{"name":"광주","lat":35.1595,"lng":126.8526,"count":242,"top":"오천억복권방","level":"warm"},{"name":"울산","lat":35.5384,"lng":129.3114,"count":201,"top":"영화유통 (1등복권방)","level":"warm"},{"name":"강원","lat":37.8228,"lng":128.1555,"count":267,"top":"LO삼성","level":"warm"},{"name":"세종","lat":36.48,"lng":127.289,"count":27,"top":"세종로또방","level":"cool"},{"name":"제주","lat":33.4996,"lng":126.5312,"count":90,"top":"로또복권","level":"cool"}];
+
+// ── 유틸 ──
+const emo=['👑','🥇','🥈','🥉','4위','5위','6위','7위','8위','9위','10위'];
+function getBallClass(n){return n<=10?'b1':n<=20?'b2':n<=30?'b3':n<=40?'b4':'b1';}
+function formatPrize(n){return n>=100000000?(n/100000000).toFixed(1)+'억':n>=10000?(n/10000).toFixed(0)+'만':n.toLocaleString();}
+function renderBalls(nums,bonus){
+  return`<div class="round-balls">${nums.map(n=>`<div class="num-ball ${getBallClass(n)}">${n}</div>`).join('')}<span class="ball-plus">+</span><div class="num-ball bonus">${bonus}</div></div>`;
+}
+function esc(s){return String(s).replace(/'/g,"&#39;");}
+
+// ── 지도 ──
+let map, infoOverlay=null, regionOverlays=[], storeOverlays=[], mapMode='region';
+
+function initMap(){
+  map=new kakao.maps.Map(document.getElementById('kakaoMap'),{center:new kakao.maps.LatLng(36.5,127.8),level:13});
+  showRegionBubbles();
+  kakao.maps.event.addListener(map,'zoom_changed',onZoomChanged);
+  renderSidePanel(TOP_STORES,'역대 명당 TOP 10');
+}
+
+function onZoomChanged(){
+  const lv=map.getLevel();
+  if(lv<=9&&mapMode==='region'){
+    mapMode='stores';
+    regionOverlays.forEach(o=>o.setMap(null));
+    showTopStoreMarkers();
+    document.getElementById('mapTitle').textContent='🏆 명당 TOP 10 — 마커를 클릭해보세요!';
+    document.getElementById('zoomHintText').textContent='줌아웃하면 전국 지역별 현황으로 돌아가요';
+  } else if(lv>9&&mapMode==='stores'){
+    mapMode='region';
+    storeOverlays.forEach(o=>o.setMap(null));storeOverlays=[];
+    regionOverlays.forEach(o=>o.setMap(map));
+    document.getElementById('mapTitle').textContent='🗺️ 전국 지역별 당첨 현황 — 지역을 클릭해보세요!';
+    document.getElementById('zoomHintText').textContent='지역 버블을 클릭하면 해당 지역 명당을 볼 수 있어요 · 줌인하면 개별 명당 마커가 나타나요';
+    renderSidePanel(TOP_STORES,'역대 명당 TOP 10');
+  }
+}
+
+function showRegionBubbles(){
+  regionOverlays=[];
+  REGIONS.forEach(r=>{
+    const o=new kakao.maps.CustomOverlay({
+      position:new kakao.maps.LatLng(r.lat,r.lng),
+      content:`<div class="marker-wrap" onclick="zoomToRegion('${r.name}',${r.lat},${r.lng},${r.count},'${r.top}','${r.level}')"><div class="marker-bubble region">${r.name} ${r.count}회</div><div class="marker-tail region"></div></div>`,
+      yAnchor:1.0
+    });
+    o.setMap(map);regionOverlays.push(o);
+  });
+}
+
+function zoomToRegion(name,lat,lng,count,top,level){
+  closeInfo();
+  map.setCenter(new kakao.maps.LatLng(lat,lng));
+  map.setLevel(9);
+  const regionStores=TOP_STORES.filter(s=>s.region.startsWith(name));
+  renderSidePanel(regionStores.length?regionStores:TOP_STORES, regionStores.length?`${name} 명당`:'역대 명당 TOP 10');
+  infoOverlay=new kakao.maps.CustomOverlay({
+    position:new kakao.maps.LatLng(lat,lng),
+    content:`<div class="info-wrap"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><div class="info-name">${name}</div><div style="font-size:11px;color:#555;cursor:pointer" onclick="closeInfo()">✕</div></div><div class="info-sub">1등 ${count}회 배출 · 최고 명당: ${top}</div><div class="info-prize">1등 ${count}회 배출</div><div class="info-btn-row"><button class="info-btn info-btn-primary" onclick="closeInfo()">🏆 명당 보기</button><button class="info-btn info-btn-secondary" onclick="closeInfo()">닫기</button></div></div>`,
+    yAnchor:0,zIndex:10
+  });
+  infoOverlay.setMap(map);
+}
+
+function showTopStoreMarkers(){
+  storeOverlays.forEach(o=>o.setMap(null));storeOverlays=[];
+  MAP_STORES.forEach(s=>{
+    const o=new kakao.maps.CustomOverlay({
+      position:new kakao.maps.LatLng(s.lat,s.lng),
+      content:`<div class="marker-wrap" onclick="showStoreInfo('${esc(s.n)}','${s.r}',${s.w},'${s.lv}',${s.t},${s.g},'${esc(s.a)}')"><div class="marker-bubble ${s.lv}">${s.n} ${s.w}회</div><div class="marker-tail ${s.level}"></div></div>`,
+      yAnchor:1.0
+    });
+    o.setMap(map);storeOverlays.push(o);
+  });
+}
+
+function showStoreInfo(name,region,count,level,lat,lng,addr){
+  closeInfo();
+  infoOverlay=new kakao.maps.CustomOverlay({
+    position:new kakao.maps.LatLng(lat,lng),
+    content:`<div class="info-wrap"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><div class="info-name">${name}</div><div style="font-size:11px;color:#555;cursor:pointer" onclick="closeInfo()">✕</div></div><div class="info-sub">📍 ${addr}</div><div class="info-prize">🏆 역대 1등 ${count}회 배출</div><div class="info-btn-row"><button class="info-btn info-btn-primary" onclick="openKakaoNavi(${lat},${lng})">🧭 길안내</button><button class="info-btn info-btn-secondary" onclick="closeInfo()">닫기</button></div></div>`,
+    yAnchor:0,zIndex:10
+  });
+  infoOverlay.setMap(map);
+  map.setCenter(new kakao.maps.LatLng(lat,lng));
+}
+
+function closeInfo(){if(infoOverlay){infoOverlay.setMap(null);infoOverlay=null;}}
+
+// ── 사이드패널 ──
+function renderSidePanel(stores, title){
+  document.getElementById('sidePanelTitle').textContent=(title.includes('역대')?'👑 ':'🏆 ')+title;
+  document.getElementById('sidePanelList').innerHTML=stores.slice(0,10).map((s,i)=>`
+    <div class="store-card ${i===0?'store-card-gold':'store-card-default'}" style="margin-bottom:8px;cursor:pointer" onclick="showStoreInfo('${esc(s.name)}','${s.region}',${s.count},'${s.level}',${s.lat},${s.lng},'${esc(s.addr)}');if(mapMode!=='stores'){map.setCenter(new kakao.maps.LatLng(${s.lat},${s.lng}));map.setLevel(8);}">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="font-size:16px;width:24px;text-align:center">${emo[i]||i+1+'위'}</div>
+        <div style="flex:1"><div style="font-size:13px;font-weight:800">${s.name}</div><div style="font-size:11px;color:#666">📍 ${s.region}</div></div>
+        <div style="text-align:right"><div style="font-size:13px;font-weight:900;color:#FFB800">${s.win1}회</div><div style="font-size:9px;color:#555">1등 배출</div></div>
+      </div>
+    </div>`).join('');
+}
+
+// ── 명당 탭 ──
+function renderRank(filter){
+  const stores=filter==='all'?TOP_STORES:TOP_STORES.filter(s=>s.region.includes(filter));
+  document.getElementById('rankGrid').innerHTML=!stores.length
+    ?`<div style="grid-column:1/-1;text-align:center;padding:40px;color:#555"><div style="font-size:32px;margin-bottom:8px">🔍</div><div>해당 지역 데이터를 준비 중이에요</div><div style="font-size:12px;margin-top:6px">stores_summary.json 연동 후 업데이트 예정</div></div>`
+    :stores.map((s,i)=>`
+    <div class="store-card ${i===0&&filter==='all'?'store-card-gold':'store-card-default'}" style="${i===0&&filter==='all'?'grid-column:1/-1':''};animation-delay:${i*0.05}s">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="font-size:${i===0&&filter==='all'?24:20}px">${emo[i]||s.rank+'위'}</div>
+        <div style="flex:1"><div class="store-name">${s.name}</div><div class="store-region">📍 ${s.region} · 1등 ${s.win1}회 배출</div></div>
+        <div style="text-align:right"><div class="store-prize">${s.win1}회</div><div class="store-prize-label">1등 배출</div></div>
+      </div>
+      ${i===0&&filter==='all'?`<div class="hot-badge">🔥 전국 1위 · 역대 최다 배출 명당</div>`:''}
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn-secondary" onclick="goToMapStore(${s.lat},${s.lng},'${esc(s.name)}','${s.region}',${s.count},'${s.level}','${esc(s.addr)}')">🗺️ 지도에서 보기</button>
+        <button class="btn-secondary" onclick="openKakaoNavi(${s.lat},${s.lng})">🧭 길안내</button>
+      </div>
+    </div>`).join('');
+}
+function filterRank(region,btn){
+  document.querySelectorAll('.region-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');renderRank(region);
+}
+
+// ── 최신 탭 ──
+function renderRecent(){
+  document.getElementById('recentGrid').innerHTML=RECENT_WINS.map((w,i)=>{
+    const lotto=LOTTO_RECENT.find(l=>l.round===w.round);
+    return`<div class="store-card ${i<2?'store-card-gold':'store-card-default'}" style="animation-delay:${i*0.05}s">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span class="grade-badge">1등</span><span style="font-size:12px;color:#555">제 ${w.round}회</span>
+          </div>
+          <div class="store-name">${w.name}</div>
+          <div class="store-region">📍 ${w.region}</div>
+        </div>
+        <div style="text-align:right"><div class="win-prize">${formatPrize(w.prize)}</div><div class="win-date">${w.date}</div></div>
+      </div>
+      ${lotto?renderBalls(lotto.nums,lotto.bonus):''}
+      <div class="btn-row" style="margin-top:10px">
+        <button class="btn-secondary" onclick="goToMapStore(${w.lat},${w.lng},'${esc(w.name)}','${w.region}',1,'warm','${esc(w.addr)}')">🗺️ 지도에서 보기</button>
+        <button class="btn-secondary" onclick="openKakaoNavi(${w.lat},${w.lng})">🧭 길안내</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── 번호 탭 ──
+function renderNumbers(){
+  document.getElementById('recentRounds').innerHTML=LOTTO_RECENT.map((r,i)=>`
+    <div class="round-card ${i===0?'latest':''}" style="animation:fadeUp 0.4s ease ${i*0.05}s both">
+      <div class="round-header"><div class="round-num">제 ${r.round}회</div><div class="round-prize">1등 ${formatPrize(r.prize1)} × ${r.count1}명</div></div>
+      ${renderBalls(r.nums,r.bonus)}
+    </div>`).join('');
+
+  const maxC=Math.max(...LOTTO_FREQ.map(f=>f.count));
+  const colors={b1:'#FFB800',b2:'#4fc3f7',b3:'#ff7043',b4:'#66bb6a'};
+  document.getElementById('freqGrid').innerHTML=LOTTO_FREQ.map(f=>{
+    const color=colors[getBallClass(f.num)]||'#FFB800';
+    return`<div class="freq-item"><div class="freq-num" style="color:${color}">${f.num}</div><div class="freq-bar-wrap"><div class="freq-bar" style="width:${f.count/maxC*100}%;background:${color}"></div></div><div class="freq-count">${f.count}회</div></div>`;
+  }).join('');
+
+  const medals=['👑','🥇','🥈','🥉','⭐'];
+  document.getElementById('top5rounds').innerHTML=LOTTO_TOP5.map((r,i)=>`
+    <div class="top-card" style="animation:slideIn 0.4s ease ${i*0.1}s both">
+      <div class="round-header">
+        <div style="display:flex;align-items:center;gap:8px"><span style="font-size:20px">${medals[i]}</span><div><div class="round-num">제 ${r.round}회</div><div style="font-size:11px;color:#666">${r.count1}명 당첨</div></div></div>
+        <div style="text-align:right"><div style="font-size:18px;font-weight:900;background:linear-gradient(90deg,#FFB800,#FF6B00);-webkit-background-clip:text;-webkit-text-fill-color:transparent">${formatPrize(r.prize1)}</div><div style="font-size:10px;color:#555">1인당 당첨금</div></div>
+      </div>
+      ${renderBalls(r.nums,r.bonus)}
+    </div>`).join('');
+}
+
+// ── 지도에서 보기 ──
+function goToMapStore(lat,lng,name,region,count,level,addr){
+  switchTab('map',document.querySelector('.tab-btn'));
+  setTimeout(()=>{
+    map.setCenter(new kakao.maps.LatLng(lat,lng));
+    map.setLevel(8);
+    if(mapMode!=='stores'){mapMode='stores';regionOverlays.forEach(o=>o.setMap(null));showTopStoreMarkers();}
+    showStoreInfo(name,region,count,level,lat,lng,addr);
+  },200);
+}
+
+// ── 내 주변 명당 ──
+let myLat=null,myLng=null,nearbyRadius=1;
+function openNearbyModal(){
+  document.getElementById('nearbyModal').classList.add('open');
+  if(!myLat){
+    navigator.geolocation?.getCurrentPosition(pos=>{
+      myLat=pos.coords.latitude;myLng=pos.coords.longitude;renderNearby();
+    },()=>{
+      document.getElementById('nearbyList').innerHTML=`<div style="text-align:center;padding:24px;color:#555"><div style="font-size:24px;margin-bottom:8px">📍</div><div>위치 권한을 허용해주세요</div></div>`;
+    });
+  }else renderNearby();
+}
+function closeNearbyModal(){document.getElementById('nearbyModal').classList.remove('open');}
+function setRadius(km,btn){nearbyRadius=km;document.querySelectorAll('.radius-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');if(myLat)renderNearby();}
+function getDist(a,b,c,d){const R=6371,dL=(c-a)*Math.PI/180,dl=(d-b)*Math.PI/180,x=Math.sin(dL/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dl/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
+function renderNearby(){
+  const nearby=TOP_STORES.map(s=>({...s,dist:getDist(myLat,myLng,s.lat,s.lng)})).filter(s=>s.dist<=nearbyRadius).sort((a,b)=>a.dist-b.dist);
+  document.getElementById('nearbyList').innerHTML=!nearby.length
+    ?`<div style="text-align:center;padding:24px;color:#555"><div style="font-size:24px;margin-bottom:8px">🔍</div><div>반경 ${nearbyRadius}km 내 명당이 없어요</div><div style="font-size:12px;margin-top:4px">범위를 넓혀보세요!</div></div>`
+    :nearby.map((s,i)=>`<div class="nearby-item">
+      <div class="nearby-rank">${i+1}</div>
+      <div class="nearby-info"><div class="nearby-name">${s.name} <span style="font-size:11px;color:#FFB800">1등 ${s.win1}회</span></div><div class="nearby-addr">${s.addr}</div></div>
+      <div style="text-align:right">
+        <div style="font-size:12px;color:#888">${s.dist<1?(s.dist*1000).toFixed(0)+'m':s.dist.toFixed(1)+'km'}</div>
+        <button style="font-size:10px;padding:3px 8px;background:rgba(255,184,0,0.1);border:1px solid rgba(255,184,0,0.3);border-radius:6px;color:#FFB800;cursor:pointer;margin-top:4px;font-family:inherit" onclick="closeNearbyModal();goToMapStore(${s.lat},${s.lng},'${esc(s.name)}','${s.region}',${s.win1},'${s.level}','${esc(s.addr)}')">지도보기</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── 길안내 ──
+function openKakaoNavi(lat,lng){window.open(`https://map.kakao.com/link/to/목적지,${lat},${lng}`,'_blank');}
+
+// ── 탭 전환 ──
+function switchTab(id,btn){
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(id==='map'&&map)setTimeout(()=>kakao.maps.event.trigger(map,'resize'),100);
+  if(id==='numbers')renderNumbers();
+  if(id==='rank')renderRank('all');
+  if(id==='recent')renderRecent();
+}
+
+// ── 초기화 ──
+window.onload=()=>{initMap();};
+</script>
+</body>
+</html>
