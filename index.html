@@ -288,17 +288,24 @@
     .rank-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 
     /* ── 최신탭: 3열 ── */
-    #tab-recent .tab-content { max-width:1100px; margin:0 auto; }
     .recent-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
 
     /* ── 기록탭 ── */
-    #tab-numbers .tab-content { max-width:960px; margin:0 auto; }
-    .numbers-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:start; }
+    /* ── 기록탭 PC 레이아웃 ── */
+    #tab-numbers { max-width:960px; margin:0 auto; }
 
-    /* 출현빈도 PC: 9열 */
+    /* 역대최고: 2열 그리드 */
+    #top5rounds { display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start; }
+
+    /* 지역비교: 4위~ 2열 그리드 */
+    #regionRankGrid { grid-template-columns:1fr 1fr !important; gap:10px !important; }
+
+    /* 출현빈도: 번호볼 9열 */
     #freqGrid > div:last-child { grid-template-columns:repeat(9,1fr) !important; gap:12px !important; }
     /* TOP8 PC: 8열 1줄 */
     #freqGrid > div:nth-child(2) > div:last-child { grid-template-columns:repeat(8,1fr) !important; }
+
+    .numbers-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:start; }
 
     .store-name  { font-size:18px; }
     .store-prize { font-size:22px; }
@@ -686,8 +693,10 @@
   <div id="tab-recent" class="tab-content">
     
     <div class="tab-desc">최근 회차별 1등 당첨 매장과 당첨번호를 확인해보세요</div>
-    <div class="recent-grid" id="recentGrid"></div>
-    <div id="recentMoreWrap"></div>
+    <div style="max-width:1100px;margin:0 auto">
+      <div class="recent-grid" id="recentGrid"></div>
+      <div id="recentMoreWrap"></div>
+    </div>
   </div>
 
   <!-- NUMBERS TAB -->
@@ -707,7 +716,7 @@
       <div id="regionCompareGrid"></div>
     </div>
     <div id="sub-freq-nums" class="sub-tab-content">
-      <div class="tab-desc">1~1214회 전체 기준 번호별 출현 횟수</div>
+      <div class="tab-desc">전체 회차 기준 번호별 출현 횟수</div>
       <div id="freqGrid"></div>
     </div>
   </div>
@@ -1603,7 +1612,8 @@ function renderNumbers(){
     </div>`;
   }).join('');
 
-  document.getElementById('regionCompareGrid').innerHTML = podium + rankCards;
+  document.getElementById('regionCompareGrid').innerHTML = podium +
+    `<div id="regionRankGrid" style="display:grid;grid-template-columns:1fr;gap:8px">${rankCards}</div>`;
 
   // 출현빈도
   // 출현빈도 - 최신 회차 번호 하이라이트
@@ -1647,10 +1657,10 @@ function renderNumbers(){
     <div style="font-size:12px;font-weight:700;color:var(--tab-active-color);margin-bottom:10px">
       🎯 제 ${latestRoundNum}회 당첨번호
     </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-      ${latestNums6.map(n=>makeBall(n,true,46)).join('')}
-      <div style="font-size:16px;color:var(--text-muted);font-weight:300;padding:0 4px">+</div>
-      ${makeBall(bonusNum,true,46)}
+    <div style="display:flex;gap:5px;flex-wrap:nowrap;align-items:center;overflow:hidden">
+      ${latestNums6.map(n=>makeBall(n,true,38)).join('')}
+      <div style="font-size:13px;color:var(--text-muted);font-weight:300;padding:0 2px">+</div>
+      ${makeBall(bonusNum,true,38)}
     </div>
   </div>`;
 
