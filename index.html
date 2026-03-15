@@ -929,12 +929,14 @@ function onZoomChanged(){
 
   if(lv <= storeThreshold && mapMode === 'region'){
     mapMode = 'stores';
-    regionOverlays.forEach(o=>o.setMap(null));
+    regionOverlays.forEach(o=>o.setMap(null)); regionOverlays.forEach(o=>o.setMap(null));
+    storeOverlays.forEach(o=>o.setMap(null)); storeOverlays=[];
     showTopStoreMarkers();
     updateMapHint(lv);
   } else if(lv > storeThreshold && mapMode === 'stores'){
     mapMode = 'region';
     storeOverlays.forEach(o=>o.setMap(null)); storeOverlays=[];
+    regionOverlays.forEach(o=>o.setMap(null));
     regionOverlays.forEach(o=>o.setMap(map));
     closeInfo();
     document.getElementById('mapTitle').textContent='📍 전국 지역별 당첨 현황 — 지역을 클릭해보세요!';
@@ -1084,29 +1086,20 @@ function _renderStores(){
     });
 
   } else if(lv === 3){
-    // 구/군 버블 (250m)
-    const grp = {};
-    for(let i=0; i<DONG_STORES.length; i++){
-      const s = DONG_STORES[i];
-      if(!inB(s.lat, s.lng)) continue;
-      const k = s.sido+'|'+s.gu;
-      if(!grp[k]) grp[k] = {sido:s.sido, gu:s.gu, w1:0, slat:0, slng:0, n:0};
-      grp[k].w1 += s.w1;
-      grp[k].slat += s.lat;
-      grp[k].slng += s.lng;
-      grp[k].n++;
-    }
-    Object.values(grp).forEach(g=>{
-      const lvl = g.w1>100?'hot':g.w1>50?'warm':'mild';
-      mkOv(g.gu, g.w1, g.slat/g.n, g.slng/g.n, lvl,
-        `zoomToGu('${esc(g.sido)}','${esc(g.gu)}',${g.slat/g.n},${g.slng/g.n})`);
+    // 구/군 버블 — bounds 안의 DONG_STORES를 개별 표시
+    const inBounds3 = DONG_STORES.filter(s=>inB(s.lat,s.lng));
+    inBounds3.slice(0,100).forEach(s=>{
+      const label = s.dong !== s.gu ? s.dong : s.gu;
+      mkOv(label, s.w1, s.lat, s.lng, s.lv,
+        `zoomToDong(${s.lat},${s.lng})`);
     });
 
   } else if(lv === 2){
-    // 동/읍면 버블 (100m) - bounds 안의 것만 표시
-    const inBounds2 = DONG_STORES.filter(s=>inB(s.lat,s.lng));
-    inBounds2.slice(0,120).forEach(s=>{
-      mkOv(s.dong, s.w1, s.lat, s.lng, s.lv, `zoomToDong(${s.lat},${s.lng})`);
+    // 판매점 버블 - bounds 안의 W1_STORES 직접 표시
+    const inBounds2 = W1_STORES.filter(s=>inB(s.t,s.g));
+    inBounds2.slice(0,100).forEach(s=>{
+      mkOv(s.n, s.w, s.t, s.g, s.lv,
+        `showStoreInfo('${esc(s.n)}','${s.sido} ${s.gu}',${s.w},${s.w2},'${s.lv}',${s.t},${s.g},'${esc(s.a)}')`);
     });
 
   } else if(lv === 1){
@@ -1171,7 +1164,7 @@ function zoomToGu(sido, gu, lat, lng){
   const clng = city ? city.lng : lng;
 
   map.setCenter(new kakao.maps.LatLng(clat, clng));
-  map.setLevel(2);
+  map.setLevel(3);
 
   // 해당 구/시 요약 카드
   const stores = W1_STORES.filter(s=>s.sido===sido && s.gu===gu);
