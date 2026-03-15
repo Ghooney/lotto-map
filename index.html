@@ -1024,64 +1024,74 @@ function _renderStores(){
 
   function dist(lat,lng){ return Math.abs(lat-cLat)+Math.abs(lng-cLng); }
 
-  function addBubble(label, count, lat, lng, onclick){
-    if(!lat || !lng || isNaN(lat) || isNaN(lng)) return;
+  function nearest(arr,lk,gk,n){
+    return arr.slice().sort((a,b)=>dist(a[lk],a[gk])-dist(b[lk],b[gk])).slice(0,n);
+  }
+
+  function addBubble(label, count, lat, lng, onclick, color){
+    if(!lat||!lng||isNaN(lat)||isNaN(lng)) return;
+    const bg = color||'#FF6B35';
     const ov = new kakao.maps.CustomOverlay({
       position: new kakao.maps.LatLng(lat, lng),
-      content: '<div onclick="'+onclick+'" style="background:#FF6B35;color:#fff;font-weight:900;font-size:13px;padding:6px 12px;border-radius:20px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.4);white-space:nowrap;font-family:sans-serif">'+label+' '+count+'회</div>',
+      content: '<div onclick="'+onclick+'" style="background:'+bg+';color:#fff;font-weight:900;font-size:13px;padding:6px 12px;border-radius:20px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.4);white-space:nowrap;font-family:sans-serif;z-index:10">'+label+' '+count+'회</div>',
       zIndex: 5,
       yAnchor: 0.5
     });
     ov.setMap(map);
     storeOverlays.push(ov);
-    console.log('[BUBBLE] '+label+' at ('+lat+','+lng+')');
   }
 
-  function nearest(arr, lk, gk, n){
-    return arr.slice().sort((a,b)=>dist(a[lk],a[gk])-dist(b[lk],b[gk])).slice(0,n);
-  }
-
-  if(lv >= 5){
+  if(lv >= 6){
+    // lv6~9: 시 버블
     if(!window._guSiCache)
       window._guSiCache = GU_STORES.filter(s=>s.gu.endsWith('시')||s.gu==='세종시');
-    const list = nearest(window._guSiCache,'lat','lng',15);
-    console.log('[RENDER] lv5+ 시버블 '+list.length+'개');
-    list.forEach(s=>{
+    const siList = nearest(window._guSiCache,'lat','lng',20);
+    siList.forEach(s=>{
       addBubble(s.gu.replace(/시$/,''), s.w1, s.lat, s.lng,
-        "zoomToGu('"+s.sido+"','"+s.gu+"',"+s.lat+","+s.lng+")");
+        "zoomToGu('"+s.sido+"','"+s.gu+"',"+s.lat+","+s.lng+")", '#D94F00');
     });
     const METRO=['서울','부산','대구','인천','광주','대전','울산'];
-    nearest(REGIONS.filter(r=>METRO.includes(r.name)),'lat','lng',4).forEach(r=>{
+    nearest(REGIONS.filter(r=>METRO.includes(r.name)),'lat','lng',5).forEach(r=>{
       const g=GOV_CENTERS[r.name];
       addBubble(r.name, r.count, g?g.lat:r.lat, g?g.lng:r.lng,
-        "zoomToRegionStores('"+r.name+"',"+(g?g.lat:r.lat)+","+(g?g.lng:r.lng)+")");
+        "zoomToRegionStores('"+r.name+"',"+(g?g.lat:r.lat)+","+(g?g.lng:r.lng)+")", '#D94F00');
     });
 
-  } else if(lv>=3 && lv<=4){
+  } else if(lv>=4 && lv<=5){
+    // lv4~5: 구/군 버블
     const nearSido = GU2_STORES.reduce((b,s)=>{
       const d=dist(s.lat,s.lng); return(!b||d<b.d)?{sido:s.sido,d}:b;
     },null)?.sido||'';
     const show = GU2_STORES.filter(s=>s.sido===nearSido);
-    console.log('[RENDER] lv3~4 구버블 sido='+nearSido+' '+show.length+'개');
+    nearest(GU2_STORES.filter(s=>s.sido!==nearSido),'lat','lng',5).forEach(s=>show.push(s));
+    console.log('[RENDER] lv4~5 구버블 sido='+nearSido+' '+show.length+'개');
     show.forEach(s=>{
       addBubble(s.gu.replace(/시$/,''), s.w1, s.lat, s.lng,
-        "zoomToGu('"+s.sido+"','"+s.gu+"',"+s.lat+","+s.lng+")");
+        "zoomToGu('"+s.sido+"','"+s.gu+"',"+s.lat+","+s.lng+")", '#E07B00');
     });
 
-  } else if(lv===2){
+  } else if(lv===3){
+    // lv3: 동 버블
     const show = nearest(DONG_STORES,'lat','lng',40);
-    console.log('[RENDER] lv2 동버블 '+show.length+'개');
+    console.log('[RENDER] lv3 동버블 '+show.length+'개');
     show.forEach(s=>{
       addBubble(s.dong!==s.gu?s.dong:s.gu, s.w1, s.lat, s.lng,
-        "zoomToDong("+s.lat+","+s.lng+")");
+        "zoomToDong("+s.lat+","+s.lng+")", '#C8920A');
     });
 
-  } else if(lv===1){
-    const show = nearest(W1_STORES,'t','g',30);
-    console.log('[RENDER] lv1 판매점 '+show.length+'개');
+  } else if(lv<=2){
+    // lv1~2: 판매점 마커
+    const show = nearest(W1_STORES,'t','g',50);
+    console.log('[RENDER] lv1~2 판매점 '+show.length+'개');
     show.forEach(s=>{
-      addBubble(s.n, s.w, s.t, s.g,
-        "showStoreInfo('"+s.n.replace(/'/g,"&#39;")+"','"+s.sido+" "+s.gu+"',"+s.w+","+s.w2+",'"+s.lv+"',"+s.t+","+s.g+",'"+s.a.replace(/'/g,"&#39;")+"')");
+      const nm=s.n.replace(/'/g,"&#39;"), ad=s.a.replace(/'/g,"&#39;");
+      const oc="showStoreInfo('"+nm+"','"+s.sido+" "+s.gu+"',"+s.w+","+s.w2+",'"+s.lv+"',"+s.t+","+s.g+",'"+ad+"')";
+      const ov = new kakao.maps.CustomOverlay({
+        position: new kakao.maps.LatLng(s.t,s.g),
+        content: '<div class="marker-wrap" onclick="'+oc+'"><div class="marker-bubble '+s.lv+'">🏆 '+s.n+' <small>'+s.w+'회</small></div></div>',
+        yAnchor:1, zIndex:5
+      });
+      ov.setMap(map); storeOverlays.push(ov);
     });
   }
 
@@ -1170,7 +1180,7 @@ function zoomToGu(sido, gu, lat, lng){
 function zoomToDong(lat,lng){
   closeInfo();
   map.setCenter(new kakao.maps.LatLng(lat,lng));
-  map.setLevel(3);
+  map.setLevel(2);
   scheduleRender(400);
 }
 
