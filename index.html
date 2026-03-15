@@ -948,7 +948,7 @@ function scheduleRender(delay){
 function onZoomChanged(){
   const lv = map.getLevel();
   const isMobile = window.innerWidth < 768;
-  const storeThreshold = 9;
+  const storeThreshold = (window.innerWidth < 768) ? 7 : 9;
 
   updateMapHint(lv);
 
@@ -1047,9 +1047,11 @@ function _renderStores(){
     storeOverlays.push(ov);
   }
 
-  // 레벨별 표시 거리 임계값 (중심에서 lat+lng 합산 거리)
-  const threshMap = {9:3.0, 8:2.0, 7:1.5, 6:1.0, 5:0.7, 4:0.5, 3:0.5, 2:0.2, 1:0.06};
-  const thresh = threshMap[lv] || 1.0;
+  // 레벨별 표시 거리 임계값 (PC/모바일 분리)
+  const isMob = window.innerWidth < 768;
+  const threshPC  = {9:4.0, 8:2.5, 7:1.8, 6:1.2, 5:0.8, 4:0.5, 3:0.4, 2:0.2,  1:0.08};
+  const threshMob = {9:2.0, 8:1.2, 7:0.9, 6:0.6, 5:0.4, 4:0.5, 3:0.4, 2:0.15, 1:0.06};
+  const thresh = (isMob ? threshMob : threshPC)[lv] || 1.0;
 
   function inRange(lat, lng){ return Math.abs(lat-cLat)+Math.abs(lng-cLng) <= thresh; }
 
