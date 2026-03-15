@@ -978,16 +978,7 @@ function updateMapHint(lv){
 }
 
 
-let _storeTimer = null;
 
-function showTopStoreMarkers(extraDelay){
-  if(_storeTimer) clearTimeout(_storeTimer);
-  storeOverlays.forEach(o=>o.setMap(null));
-  storeOverlays = [];
-  const isMob = window.innerWidth < 768;
-  const delay = extraDelay || (isMob ? 400 : 200);
-  _storeTimer = setTimeout(_renderStores, delay);
-}
 
 function _renderStores(){
   storeOverlays.forEach(o=>o.setMap(null));
