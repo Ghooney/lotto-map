@@ -650,7 +650,7 @@
         <div class="logo-sub" style="grid-column:2;padding-left:1px">LOTTO LUCKY MAP</div>
       </div>
     </div>
-    <div class="badge-live" style="text-align:center;line-height:1.4;flex-shrink:1;margin-left:auto;font-size:11px;padding:5px 10px;white-space:nowrap">🎯 제 1214회 완료<br><span style="font-size:10px;font-weight:400;opacity:0.85">2026.03.07 추첨</span></div>
+    <div class="badge-live" style="text-align:center;line-height:1.4;flex-shrink:1;margin-left:auto;font-size:11px;padding:5px 10px;white-space:nowrap">🎯 제 1214회<br><span style="font-size:10px;font-weight:400;opacity:0.85">2026.03.07 추첨</span></div>
     <button class="theme-toggle" onclick="toggleTheme()" title="테마 변경" style="flex-shrink:0">☀️</button>
   </div>
   <!-- 탭 -->
@@ -771,8 +771,7 @@
         <div onclick="closeBest9Modal()" style="font-size:20px;cursor:pointer;color:#555;padding:4px 8px">✕</div>
       </div>
       <div class="nearby-sub" id="best9Sub">이 지역 역대 1등 배출 TOP 9</div>
-      <div id="best9Grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px"></div>
-      <button onclick="closeBest9Modal()" class="nearby-close" style="margin-top:18px">닫기</button>
+      <div id="best9Grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px;align-items:stretch"></div>
     </div>
   </div>
 
@@ -946,9 +945,9 @@ function zoomToRegion(name, lat, lng, count, top, level){
   var _isMob = window.innerWidth < 768;
   var _lv = _isMob ? 10 : 9;
   var _dpp = {9:0.000553, 10:0.001106}[_lv] || 0.000553;
-  var _ratio = _isMob ? 0.15 : 0.22;
+  var _ratio = _isMob ? 0.10 : 0.15;
   var _off = _dpp * _mapH * _ratio;
-  var _centerLat = clat + _off;
+  var _centerLat = clat - _off;
   map.setCenter(new kakao.maps.LatLng(_centerLat, clng));
   mapMode = 'stores';
   regionOverlays.forEach(o=>o.setMap(null));
@@ -1020,7 +1019,7 @@ function showBest9(sido, gu){
     .sort(function(a,b){ return b.w - a.w; })
     .slice(0, 9);
 
-  var guShort = gu.replace(/시$/, '');
+  var guShort = gu.replace(/시$/, '').replace(sido, '').trim();
   document.getElementById('best9Title').textContent = '🏆 ' + guShort + ' 명당 상위 리스트';
   document.getElementById('best9Sub').textContent = sido + ' ' + gu + ' · 1등 배출 상위 ' + _best9Stores.length + '곳';
 
@@ -1046,7 +1045,7 @@ function showBest9(sido, gu){
           + 'background:var(--bg-card);border:2px solid ' + col + ';border-radius:14px;'
           + 'padding:12px 8px;cursor:pointer;'
           + 'display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:8px;'
-          + 'min-height:110px">'
+          + 'height:100%">'
           + medalEl
           + '<div style="font-size:13px;font-weight:900;color:var(--text-primary);text-align:center;line-height:1.3;word-break:keep-all;width:100%">' + s.n + '</div>'
           + '<div style="display:flex;gap:4px;align-items:center;justify-content:center">' + w1Ball + w2Ball + '</div>'
@@ -1285,9 +1284,9 @@ function zoomToRegionStores(name, lat, lng){
     var mapH = mapEl ? mapEl.offsetHeight : 400;
     var isMob = window.innerWidth < 768;
     var dpp = 0.0000172; // lv3
-    var ratio = isMob ? 0.15 : 0.22;
+    var ratio = isMob ? 0.10 : 0.15;
     var off = dpp * mapH * ratio;
-    map.setCenter(new kakao.maps.LatLng(clat + off, clng));
+    map.setCenter(new kakao.maps.LatLng(clat - off, clng));
   })();
 
   const regionStores = W1_STORES.filter(s=>(s.sido||'').startsWith(name));
@@ -1302,8 +1301,8 @@ function zoomToRegionStores(name, lat, lng){
   var _guMapH = _guMapEl ? _guMapEl.offsetHeight : 400;
   var _guIsMob = window.innerWidth < 768;
   var _guDpp = 0.000138; // lv6(1km)
-  var _guOff = _guDpp * _guMapH * (_guIsMob ? 0.15 : 0.22);
-  var _guCenterLat = clat + _guOff;
+  var _guOff = _guDpp * _guMapH * (_guIsMob ? 0.10 : 0.15);
+  var _guCenterLat = clat - _guOff;
   map.setCenter(new kakao.maps.LatLng(_guCenterLat, clng));
 
   infoOverlay = new kakao.maps.CustomOverlay({
@@ -1345,8 +1344,8 @@ function zoomToGu(sido, gu, lat, lng){
   var _guMapH = _guMapEl ? _guMapEl.offsetHeight : 400;
   var _guIsMob = window.innerWidth < 768;
   var _guDpp = 0.000138; // lv6(1km)
-  var _guOff = _guDpp * _guMapH * (_guIsMob ? 0.15 : 0.22);
-  var _guCenterLat = clat + _guOff;
+  var _guOff = _guDpp * _guMapH * (_guIsMob ? 0.10 : 0.15);
+  var _guCenterLat = clat - _guOff;
   map.setCenter(new kakao.maps.LatLng(_guCenterLat, clng));
 
   infoOverlay = new kakao.maps.CustomOverlay({
@@ -1449,8 +1448,8 @@ function showStoreInfo(name,region,win1,win2,level,lat,lng,addr){
   if(map.getLevel() > 5) map.setLevel(3);
   // 마커를 지도 상단 약 30% 지점에 배치 → 카드가 지도 중앙에 위치
   // 지도 중심을 마커 아래쪽으로 내려야 마커가 위로 올라감
-  // lat + off = 중심을 북쪽(위)으로 → 마커는 상대적으로 아래에 위치 (반대)
-  // lat + off = 중심을 남쪽(아래)으로 → 마커는 위쪽에 위치 ✅
+  // lat - off = 중심을 북쪽(위)으로 → 마커는 상대적으로 아래에 위치 (반대)
+  // lat - off = 중심을 남쪽(아래)으로 → 마커는 위쪽에 위치 ✅
   (function(){
     var mapEl = document.getElementById('kakaoMap');
     var mapH = mapEl ? mapEl.offsetHeight : 400;
@@ -1459,9 +1458,9 @@ function showStoreInfo(name,region,win1,win2,level,lat,lng,addr){
     var dpp = degPerPx[lv] || 0.0000172;
     // 지도 높이의 20% 만큼 중심을 아래로 → 마커가 상단 30% 지점에
     var isMob = window.innerWidth < 768;
-    var ratio = isMob ? 0.15 : 0.22;
+    var ratio = isMob ? 0.10 : 0.15;
     var off = dpp * mapH * ratio;
-    map.setCenter(new kakao.maps.LatLng(lat + off, lng));
+    map.setCenter(new kakao.maps.LatLng(lat - off, lng));
   })();
 }
 
