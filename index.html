@@ -277,7 +277,12 @@
 
     /* 사이드패널 지도와 같은 높이로 */
     .map-side-panel { display:flex; flex-direction:column; gap:12px;
-      max-height:calc(100vh - 280px); overflow-y:auto; }
+      max-height:calc(100vh - 280px); overflow-y:auto;
+      padding-right:6px; }
+    .map-side-panel::-webkit-scrollbar { width:4px; }
+    .map-side-panel::-webkit-scrollbar-track { background:transparent; border-radius:4px; }
+    .map-side-panel::-webkit-scrollbar-thumb { background:rgba(255,184,0,0.4); border-radius:4px; }
+    .map-side-panel::-webkit-scrollbar-thumb:hover { background:rgba(255,184,0,0.7); }
 
     /* 하단 버튼 PC에서는 고정 안하고 인라인으로 */
     .bottom-bar { position:static; padding:12px 0 20px; background:none; box-shadow:none; }
@@ -561,7 +566,7 @@
     #kakaoMap { height:calc(100vh - 212px) !important; min-height:500px; max-height:none; }
 
     /* 5. 사이드패널 */
-    .map-side-panel { max-height:calc(100vh - 212px) !important; overflow-y:auto; }
+    .map-side-panel { max-height:calc(100vh - 212px) !important; overflow-y:auto; padding-right:6px; }
 
     /* 6. 하단바 */
     .bottom-bar { position:fixed !important; bottom:0; left:0; right:0;
@@ -1078,23 +1083,17 @@ function _renderStores(){
     });
 
   } else if(lv === 3 || lv === 4){
-    // lv3~4: 현재 중심에서 가까운 구/군 표시
+    // lv3~4: 현재 중심에서 가장 가까운 sido 전체 구/군 + 인접 타시도 표시
     const cLat34 = map.getCenter().getLat();
     const cLng34 = map.getCenter().getLng();
-    // 가장 가까운 항목의 sido 찾기
-    let nearestSido = GU2_STORES.reduce((best, s) => {
+    const nearestSido34 = GU2_STORES.reduce((best, s) => {
       const d = Math.abs(s.lat-cLat34) + Math.abs(s.lng-cLng34);
-      return (!best || d < best.d) ? {sido: s.sido, d} : best;
+      return (!best || d < best.d) ? {sido:s.sido, d} : best;
     }, null)?.sido || '';
-    // 같은 sido의 구/군 전부 + 인접 지역 일부
-    const shown34 = new Set();
-    GU2_STORES.forEach(s => {
+    GU2_STORES.filter(s => {
       const d = Math.abs(s.lat-cLat34) + Math.abs(s.lng-cLng34);
-      if(s.sido === nearestSido || d < 0.3) {
-        shown34.add(s);
-      }
-    });
-    shown34.forEach(s => {
+      return s.sido === nearestSido34 || d < 0.3;
+    }).forEach(s => {
       const guLabel = s.gu.replace(/시$/, '');
       mkOv(guLabel, s.w1, s.lat, s.lng, s.lv,
         `zoomToGu('${esc(s.sido)}','${esc(s.gu)}',${s.lat},${s.lng})`);
