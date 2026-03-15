@@ -1058,107 +1058,71 @@ function _renderStores(){
   const lv = map.getLevel();
   const cLat = map.getCenter().getLat();
   const cLng = map.getCenter().getLng();
-  console.log('[MAP] _renderStores lv='+lv+' mapMode='+mapMode+' center=('+cLat.toFixed(4)+','+cLng.toFixed(4)+')');
+  console.log('[RENDER] lv='+lv+' center=('+cLat.toFixed(3)+','+cLng.toFixed(3)+')');
 
-  const C = {
-    legend:{bg:'linear-gradient(135deg,#B8860B,#DAA520)', bd:'#B8860B', tx:'#fff'},
-    hot:   {bg:'linear-gradient(135deg,#D94F00,#FF6B35)', bd:'#D94F00', tx:'#fff'},
-    warm:  {bg:'linear-gradient(135deg,#E07B00,#FFB347)', bd:'#E07B00', tx:'#fff'},
-    mild:  {bg:'linear-gradient(135deg,#C8920A,#E8B84B)', bd:'#C8920A', tx:'#fff'},
-    cool:  {bg:'linear-gradient(135deg,#9E7A2E,#C4A25A)', bd:'#9E7A2E', tx:'#fff'},
-  };
-  const szMap = {9:44,8:48,7:44,6:46,5:44,4:48,3:44,2:40,1:36};
-  const sz = szMap[lv] || 30;
-  const fs = Math.max(9, Math.round(sz*0.28));
-  const py = Math.max(3, Math.round(sz*0.1));
-  const px = Math.max(7, Math.round(sz*0.22));
+  function dist(lat,lng){ return Math.abs(lat-cLat)+Math.abs(lng-cLng); }
 
-  function mkOvCircle(label, count, lat, lng, lvl, onclick){
-    console.log('[MAP] mkOvCircle: '+label+' cnt='+count+' lat='+lat+' lng='+lng);
-    const c = C[lvl] || C.mild;
-    const csz = {9:52,8:56,7:52,6:56,5:52}[lv] || 52;
-    const cfs = Math.max(10, Math.round(csz*0.22));
-    const inner = `<div style="font-size:${cfs}px;opacity:0.9">${label}</div><div style="font-size:${cfs+2}px;font-weight:900">${count}회</div>`;
+  function addBubble(label, count, lat, lng, onclick){
+    if(!lat || !lng || isNaN(lat) || isNaN(lng)) return;
     const ov = new kakao.maps.CustomOverlay({
       position: new kakao.maps.LatLng(lat, lng),
-      content: `<div onclick="${onclick}" style="background:${c.bg};border:2px solid ${c.bd};border-radius:50%;width:${csz}px;height:${csz}px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Noto Sans KR',sans-serif;font-weight:900;color:${c.tx};box-shadow:0 3px 10px rgba(0,0,0,0.3);transition:transform 0.12s;line-height:1.2" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">${inner}</div>`,
+      content: '<div onclick="'+onclick+'" style="background:#FF6B35;color:#fff;font-weight:900;font-size:13px;padding:6px 12px;border-radius:20px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.4);white-space:nowrap;font-family:sans-serif">'+label+' '+count+'회</div>',
+      zIndex: 5,
       yAnchor: 0.5
     });
-    ov.setMap(map); storeOverlays.push(ov);
+    ov.setMap(map);
+    storeOverlays.push(ov);
+    console.log('[BUBBLE] '+label+' at ('+lat+','+lng+')');
   }
 
-  function mkOv(label, count, lat, lng, lvl, onclick){
-    const c = C[lvl] || C.mild;
-    const inner = `<div style="font-size:${fs-1}px;opacity:0.85">${label}</div><div style="font-size:${fs+1}px;font-weight:900">${count}회</div>`;
-    const ov = new kakao.maps.CustomOverlay({
-      position: new kakao.maps.LatLng(lat, lng),
-      content: `<div onclick="${onclick}" style="background:${c.bg};border:1.5px solid ${c.bd};border-radius:${sz/2+4}px;padding:${py}px ${px}px;cursor:pointer;white-space:nowrap;font-family:'Noto Sans KR',sans-serif;font-weight:900;color:${c.tx};box-shadow:0 2px 6px rgba(0,0,0,0.3);transition:transform 0.12s;text-align:center;line-height:1.4" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'">${inner}</div>`,
-      yAnchor: 0.5
-    });
-    ov.setMap(map); storeOverlays.push(ov);
-  }
-
-  // 중심에서 거리 계산
-  function dist(lat, lng){ return Math.abs(lat-cLat) + Math.abs(lng-cLng); }
-
-  // 가장 가까운 N개 뽑기
-  function nearest(arr, latKey, lngKey, n){
-    const result = arr.map(s=>({s, d:dist(s[latKey], s[lngKey])}))
-              .sort((a,b)=>a.d-b.d)
-              .slice(0, n)
-              .map(x=>x.s);
-    console.log('[MAP] nearest arr='+arr.length+' n='+n+' result='+result.length);
-    return result;
+  function nearest(arr, lk, gk, n){
+    return arr.slice().sort((a,b)=>dist(a[lk],a[gk])-dist(b[lk],b[gk])).slice(0,n);
   }
 
   if(lv >= 5){
-    // 시 버블: 가까운 시 20개
     if(!window._guSiCache)
       window._guSiCache = GU_STORES.filter(s=>s.gu.endsWith('시')||s.gu==='세종시');
-    nearest(window._guSiCache, 'lat', 'lng', 20).forEach(s=>{
-      mkOvCircle(s.gu.replace(/시$/,''), s.w1, s.lat, s.lng, s.lv,
-        `zoomToGu('${esc(s.sido)}','${esc(s.gu)}',${s.lat},${s.lng})`);
+    const list = nearest(window._guSiCache,'lat','lng',15);
+    console.log('[RENDER] lv5+ 시버블 '+list.length+'개');
+    list.forEach(s=>{
+      addBubble(s.gu.replace(/시$/,''), s.w1, s.lat, s.lng,
+        "zoomToGu('"+s.sido+"','"+s.gu+"',"+s.lat+","+s.lng+")");
     });
-    // 광역시: 가까운 것 포함
-    const METRO_SET = new Set(['서울','부산','대구','인천','광주','대전','울산']);
-    nearest(REGIONS.filter(r=>METRO_SET.has(r.name)), 'lat', 'lng', 5).forEach(r=>{
-      const gov=GOV_CENTERS[r.name];
-      const lat=gov?gov.lat:r.lat, lng=gov?gov.lng:r.lng;
-      mkOvCircle(r.name, r.count, lat, lng, r.level,
-        `zoomToRegionStores('${esc(r.name)}',${lat},${lng})`);
+    const METRO=['서울','부산','대구','인천','광주','대전','울산'];
+    nearest(REGIONS.filter(r=>METRO.includes(r.name)),'lat','lng',4).forEach(r=>{
+      const g=GOV_CENTERS[r.name];
+      addBubble(r.name, r.count, g?g.lat:r.lat, g?g.lng:r.lng,
+        "zoomToRegionStores('"+r.name+"',"+(g?g.lat:r.lat)+","+(g?g.lng:r.lng)+")");
     });
 
-  } else if(lv === 3 || lv === 4){
-    // 구/군 버블: 가장 가까운 sido 전체 표시
-    const nearSido = GU2_STORES.reduce((best,s)=>{
-      const d=dist(s.lat,s.lng); return(!best||d<best.d)?{sido:s.sido,d}:best;
+  } else if(lv>=3 && lv<=4){
+    const nearSido = GU2_STORES.reduce((b,s)=>{
+      const d=dist(s.lat,s.lng); return(!b||d<b.d)?{sido:s.sido,d}:b;
     },null)?.sido||'';
-    const sameSido = GU2_STORES.filter(s=>s.sido===nearSido);
-    const others = nearest(GU2_STORES.filter(s=>s.sido!==nearSido),'lat','lng',5);
-    [...sameSido,...others].forEach(s=>{
-      mkOv(s.gu.replace(/시$/,''), s.w1, s.lat, s.lng, s.lv,
-        `zoomToGu('${esc(s.sido)}','${esc(s.gu)}',${s.lat},${s.lng})`);
+    const show = GU2_STORES.filter(s=>s.sido===nearSido);
+    console.log('[RENDER] lv3~4 구버블 sido='+nearSido+' '+show.length+'개');
+    show.forEach(s=>{
+      addBubble(s.gu.replace(/시$/,''), s.w1, s.lat, s.lng,
+        "zoomToGu('"+s.sido+"','"+s.gu+"',"+s.lat+","+s.lng+")");
     });
 
-  } else if(lv === 2){
-    // 동 버블: 가까운 동 50개
-    nearest(DONG_STORES,'lat','lng',50).forEach(s=>{
-      mkOv(s.dong!==s.gu?s.dong:s.gu, s.w1, s.lat, s.lng, s.lv,
-        `zoomToDong(${s.lat},${s.lng})`);
+  } else if(lv===2){
+    const show = nearest(DONG_STORES,'lat','lng',40);
+    console.log('[RENDER] lv2 동버블 '+show.length+'개');
+    show.forEach(s=>{
+      addBubble(s.dong!==s.gu?s.dong:s.gu, s.w1, s.lat, s.lng,
+        "zoomToDong("+s.lat+","+s.lng+")");
     });
 
-  } else if(lv === 1){
-    // 판매점 마커: 가까운 50개
-    nearest(W1_STORES,'t','g',50).forEach(s=>{
-      const c=C[s.lv]||C.mild;
-      const ov=new kakao.maps.CustomOverlay({
-        position:new kakao.maps.LatLng(s.t,s.g),
-        content:`<div class="marker-wrap" onclick="showStoreInfo('${esc(s.n)}','${s.sido} ${s.gu}',${s.w},${s.w2},'${s.lv}',${s.t},${s.g},'${esc(s.a)}')"><div class="marker-bubble ${s.lv}">🏆 ${s.n} <small>${s.w}회</small></div></div>`,
-        yAnchor:1
-      });
-      ov.setMap(map); storeOverlays.push(ov);
+  } else if(lv===1){
+    const show = nearest(W1_STORES,'t','g',30);
+    console.log('[RENDER] lv1 판매점 '+show.length+'개');
+    show.forEach(s=>{
+      addBubble(s.n, s.w, s.t, s.g,
+        "showStoreInfo('"+s.n.replace(/'/g,"&#39;")+"','"+s.sido+" "+s.gu+"',"+s.w+","+s.w2+",'"+s.lv+"',"+s.t+","+s.g+",'"+s.a.replace(/'/g,"&#39;")+"')");
     });
   }
+
   updateMapHint(lv);
   updateSidePanelByView();
 }
