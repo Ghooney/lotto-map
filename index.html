@@ -1105,8 +1105,9 @@ function _renderStores(){
   // 모바일: lv7~9=시, lv5~6=구, lv3~4=동, lv1~2=판매점
   // PC:     시lv8~9, 구lv6~7, 동lv4~5, 판매점lv1~3
   // 모바일: 시lv7~9, 구lv5~6, 동lv3~4, 판매점lv1~2 (한 단계 일찍 시작)
-  // PC:     시lv10~12, 구lv8~9, 동lv6~7, 판매점lv1~5
-  // 모바일: 시lv11~12, 구lv9~10, 동lv7~8, 판매점lv1~6
+  // PC:     시/도=lv13, 시=lv10~12, 구=lv8~9, 동=lv6~7, 판매점=lv1~5
+  // 모바일: 시/도=lv13, 시=lv11~12, 구=lv9~10, 동=lv7~8, 판매점=lv1~6
+  const SI_MAX   = 12;          // 시버블 최대 lv (PC/모바일 공통)
   const SI_MIN   = mob ? 11 : 10;
   const GU_MAX   = mob ? 10 : 9;
   const GU_MIN   = mob ? 9 : 8;
@@ -1114,8 +1115,8 @@ function _renderStores(){
   const DONG_MIN = mob ? 7 : 6;
   const MK_MAX   = mob ? 6 : 5;
 
-  if(lv >= SI_MIN){
-    // 시 버블
+  if(lv >= SI_MIN && lv <= SI_MAX){
+    // 시 버블 (lv10~12 PC / lv11~12 모바일)
     if(!window._guSiCache)
       window._guSiCache = GU_STORES.filter(s=>s.gu.endsWith('시')||s.gu==='세종시');
     nearest(window._guSiCache,'lat','lng',20).forEach(s=>{
