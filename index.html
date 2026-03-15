@@ -779,13 +779,14 @@
 
   <!-- 시 BEST 9 모달 -->
   <div class="nearby-modal" id="best9Modal" onclick="if(event.target===this)closeBest9Modal()">
-    <div class="nearby-sheet" style="max-height:85vh;overflow-y:auto;max-width:500px;padding:20px 16px 40px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+    <div class="nearby-sheet" style="max-height:80vh;overflow-y:auto;max-width:500px;padding:20px 16px 24px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
         <div class="nearby-title" id="best9Title">🏆 명당 상위 리스트</div>
         <div onclick="closeBest9Modal()" style="font-size:20px;cursor:pointer;color:#555;padding:4px 8px">✕</div>
       </div>
-      <div class="nearby-sub" id="best9Sub">이 지역 역대 1등 배출 TOP 9</div>
-      <div id="best9Grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px;align-items:stretch"></div>
+      <div class="nearby-sub" id="best9Sub">이 지역 역대 1등 배출 TOP</div>
+      <div id="best9Grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px;align-items:stretch"></div>
+      <button onclick="closeBest9Modal()" style="width:100%;margin-top:16px;padding:13px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;color:var(--text-secondary);font-size:14px;cursor:pointer;font-family:'Noto Sans KR',sans-serif">닫기</button>
     </div>
   </div>
 
@@ -960,8 +961,8 @@ function zoomToRegion(name, lat, lng, count, top, level){
   var _lv = _isMob ? 10 : 9;
   var _dpp = {9:0.000553, 10:0.001106}[_lv] || 0.000553;
   // 카드(약 200px) 중앙 배치: 마커를 지도 중앙에서 카드높이만큼 위로
-  var _cardH = 200;
-  var _off = _dpp * (_mapH / 2 - _cardH);
+  var _cardH = 180;
+  var _off = _dpp * (_mapH / 2 - _cardH / 2);
   if(_off < 0) _off = 0;
   var _centerLat = clat - _off;
   map.setCenter(new kakao.maps.LatLng(_centerLat, clng));
@@ -1033,10 +1034,10 @@ function showBest9(sido, gu){
   _best9Stores = W1_STORES
     .filter(function(s){ return s.sido === sido && s.gu === gu; })
     .sort(function(a,b){ return b.w - a.w; })
-    .slice(0, 9);
+    .slice(0, 6);
 
   var guShort = gu.replace(/시$/, '').replace(sido, '').trim();
-  document.getElementById('best9Title').textContent = '🏆 ' + guShort + ' 명당 상위 리스트';
+  document.getElementById('best9Title').textContent = '🏆 ' + guShort + ' 명당 리스트';
   document.getElementById('best9Sub').textContent = sido + ' ' + gu + ' · 1등 배출 상위 ' + _best9Stores.length + '곳';
 
   var levelColor = {legend:'#CC0000', hot:'#D94F00', warm:'#E07B00', mild:'#9E7A2E', cool:'#9E7A2E'};
@@ -1048,26 +1049,28 @@ function showBest9(sido, gu){
     var rank = i+1;
     var col = levelColor[s.lv] || '#9E7A2E';
     var medalEl = i < 3
-      ? '<div style="font-size:20px;text-align:center;line-height:1">' + medals[i] + '</div>'
-      : '<div style="font-size:10px;font-weight:700;color:#aaa;text-align:center">' + rank + '위</div>';
+      ? '<div style="font-size:20px;text-align:center;line-height:1;margin-bottom:6px">' + medals[i] + '</div>'
+      : '<div style="font-size:11px;font-weight:700;color:#aaa;text-align:center;margin-bottom:6px">' + rank + '위</div>';
+
+    var w1Text = s.w > 0 ? '1등 ' + s.w + '회' : '';
+    var w2Text = s.w2 > 0 ? '2등 ' + s.w2 + '회' : '';
+    var countText = [w1Text, w2Text].filter(Boolean).join(' · ');
+
     var w1Ball = s.w > 0
-      ? '<div style="background:linear-gradient(135deg,#FFD700,#FFA500);color:#fff;font-size:10px;font-weight:900;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center">' + s.w + '</div>'
+      ? '<div style="background:linear-gradient(135deg,#FFD700,#FFA500);color:#fff;font-size:11px;font-weight:900;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">' + s.w + '</div>'
       : '';
     var w2Ball = s.w2 > 0
-      ? '<div style="background:linear-gradient(135deg,#C0C0C0,#A8A8A8);color:#fff;font-size:10px;font-weight:900;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center">' + s.w2 + '</div>'
+      ? '<div style="background:linear-gradient(135deg,#C0C0C0,#A8A8A8);color:#fff;font-size:11px;font-weight:900;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">' + s.w2 + '</div>'
       : '';
 
     html += '<div onclick="goToBest9Store(' + i + ')" style="'
-          + 'background:var(--bg-card);border:2px solid ' + col + ';border-radius:14px;'
-          + 'padding:12px 8px;cursor:pointer;'
-          + 'display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:8px;'
-          + 'height:100%">'
+          + 'background:var(--bg-card);border:1.5px solid ' + col + ';border-radius:14px;'
+          + 'padding:12px 8px 10px;cursor:pointer;height:100%;box-sizing:border-box;'
+          + 'display:flex;flex-direction:column;align-items:center;gap:5px">'
           + medalEl
-          + '<div style="font-size:13px;font-weight:900;color:var(--text-primary);text-align:center;line-height:1.3;word-break:keep-all;width:100%">' + s.n + '</div>'
-          + '<div style="display:flex;gap:4px;align-items:center;justify-content:center;margin-bottom:4px">' + w1Ball + w2Ball + '</div>'
-          + '<div style="font-size:10px;color:var(--text-secondary);text-align:center">'
-          + (s.w > 0 ? '1등 ' + s.w + '회' : '') + (s.w > 0 && s.w2 > 0 ? ' / ' : '') + (s.w2 > 0 ? '2등 ' + s.w2 + '회' : '') + ' 배출'
-          + '</div>'
+          + '<div style="font-size:12px;font-weight:900;color:var(--text-primary);text-align:center;line-height:1.3;word-break:keep-all;width:100%;flex:1">' + s.n + '</div>'
+          + '<div style="display:flex;gap:4px;align-items:center;justify-content:center">' + w1Ball + w2Ball + '</div>'
+          + '<div style="font-size:9px;color:var(--text-secondary);text-align:center;white-space:nowrap">' + countText + '</div>'
           + '</div>';
   }
   document.getElementById('best9Grid').innerHTML = html;
@@ -1089,6 +1092,7 @@ function goToBest9Store(idx){
 function closeBest9Modal(){
   document.getElementById('best9Modal').style.display = 'none';
 }
+
 
 
 
@@ -1374,7 +1378,7 @@ function zoomToRegionStores(name, lat, lng){
   var _guIsMob = window.innerWidth < 768;
   var _guDpp = 0.000138; // lv6(1km)
   var _guCardH = 220;
-  var _guOff = _guDpp * (_guMapH / 2 - _guCardH);
+  var _guOff = _guDpp * (_guMapH / 2 - _guCardH / 2);
   if(_guOff < 0) _guOff = 0;
   var _guCenterLat = clat - _guOff;
   map.setCenter(new kakao.maps.LatLng(_guCenterLat, clng));
@@ -1419,7 +1423,7 @@ function zoomToGu(sido, gu, lat, lng){
   var _guIsMob = window.innerWidth < 768;
   var _guDpp = 0.000138; // lv6(1km)
   var _guCardH = 220;
-  var _guOff = _guDpp * (_guMapH / 2 - _guCardH);
+  var _guOff = _guDpp * (_guMapH / 2 - _guCardH / 2);
   if(_guOff < 0) _guOff = 0;
   var _guCenterLat = clat - _guOff;
   map.setCenter(new kakao.maps.LatLng(_guCenterLat, clng));
@@ -1535,8 +1539,8 @@ function showStoreInfo(name,region,win1,win2,level,lat,lng,addr){
     // 마커를 지도 중앙보다 카드 높이(약 230px)만큼 위에 배치
     // → 카드가 마커 아래에 펼쳐져 지도 중앙에 위치
     var cardH = 230;
-    var off = dpp * (mapH / 2 - cardH);
-    // off가 음수면 마커가 아래로 내려가므로 최소 0 보장
+    // 마커 위치: 지도 중앙 위에서 카드절반만큼 더 위 → 카드가 중앙에 위치
+    var off = dpp * (mapH / 2 - cardH / 2);
     if(off < 0) off = 0;
     map.setCenter(new kakao.maps.LatLng(lat - off, lng));
   })();
