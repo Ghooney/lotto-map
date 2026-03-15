@@ -645,7 +645,7 @@
         <div class="map-title" id="mapTitle">📍 전국 지역별 1등 당첨 현황 — 지역을 클릭해보세요!</div>
         <div style="position:relative">
           <div id="kakaoMap"></div>
-          <button class="my-location-btn" onclick="openNearbyModal()" title="내 주변 명당">📍</button>
+          <button class="my-location-btn" onclick="goToMyLocation()" title="현재 위치로 이동" style="width:auto;border-radius:20px;padding:0 14px;font-size:12px;font-weight:700;white-space:nowrap">📍 내 위치</button>
           <div id="mapLoadingMsg">🔄 데이터 로딩 중...</div>
         </div>
         <div class="zoom-hint">
@@ -1089,41 +1089,27 @@ function _renderStores(){
     });
 
   } else if(lv === 3 || lv === 4){
-    // 구/군 버블: bounds 2배 확장 + nearest 보완
-    const bds=map.getBounds(), sw=bds.getSouthWest(), ne=bds.getNorthEast();
-    console.log('[MAP] lv34 bounds sw=('+sw.getLat().toFixed(4)+','+sw.getLng().toFixed(4)+') ne=('+ne.getLat().toFixed(4)+','+ne.getLng().toFixed(4)+')');
-    const latE=(ne.getLat()-sw.getLat())*2, lngE=(ne.getLng()-sw.getLng())*2;
-    const minLat=sw.getLat()-latE, maxLat=ne.getLat()+latE;
-    const minLng=sw.getLng()-lngE, maxLng=ne.getLng()+lngE;
-    let shown = GU2_STORES.filter(s=>s.lat>=minLat&&s.lat<=maxLat&&s.lng>=minLng&&s.lng<=maxLng);
-    console.log('[MAP] lv34 minLat='+minLat.toFixed(4)+' maxLat='+maxLat.toFixed(4)+' minLng='+minLng.toFixed(4)+' maxLng='+maxLng.toFixed(4));
-    console.log('[MAP] lv34 shown='+shown.length+'개');
-    // bounds 안에 없으면 nearest 10개
-    if(shown.length===0) shown = nearest(GU2_STORES,'lat','lng',10);
-    console.log('[MAP] lv34 최종 표시='+shown.length+'개, 첫번째='+(shown[0]?shown[0].gu:'없음'));
-    shown.forEach(s=>{
+    // 구/군 버블: 가장 가까운 sido 전체 표시
+    const nearSido = GU2_STORES.reduce((best,s)=>{
+      const d=dist(s.lat,s.lng); return(!best||d<best.d)?{sido:s.sido,d}:best;
+    },null)?.sido||'';
+    const sameSido = GU2_STORES.filter(s=>s.sido===nearSido);
+    const others = nearest(GU2_STORES.filter(s=>s.sido!==nearSido),'lat','lng',5);
+    [...sameSido,...others].forEach(s=>{
       mkOv(s.gu.replace(/시$/,''), s.w1, s.lat, s.lng, s.lv,
         `zoomToGu('${esc(s.sido)}','${esc(s.gu)}',${s.lat},${s.lng})`);
     });
 
   } else if(lv === 2){
-    // 동 버블: bounds 3배 확장
-    const bds2=map.getBounds(), sw2=bds2.getSouthWest(), ne2=bds2.getNorthEast();
-    const latE2=(ne2.getLat()-sw2.getLat())*3, lngE2=(ne2.getLng()-sw2.getLng())*3;
-    let shown2 = DONG_STORES.filter(s=>s.lat>=sw2.getLat()-latE2&&s.lat<=ne2.getLat()+latE2&&s.lng>=sw2.getLng()-lngE2&&s.lng<=ne2.getLng()+lngE2);
-    if(shown2.length===0) shown2 = nearest(DONG_STORES,'lat','lng',30);
-    shown2.slice(0,60).forEach(s=>{
+    // 동 버블: 가까운 동 50개
+    nearest(DONG_STORES,'lat','lng',50).forEach(s=>{
       mkOv(s.dong!==s.gu?s.dong:s.gu, s.w1, s.lat, s.lng, s.lv,
         `zoomToDong(${s.lat},${s.lng})`);
     });
 
   } else if(lv === 1){
-    // 판매점 마커: bounds 3배 확장
-    const bds1=map.getBounds(), sw1=bds1.getSouthWest(), ne1=bds1.getNorthEast();
-    const latE1=(ne1.getLat()-sw1.getLat())*3, lngE1=(ne1.getLng()-sw1.getLng())*3;
-    let shown1 = W1_STORES.filter(s=>s.t>=sw1.getLat()-latE1&&s.t<=ne1.getLat()+latE1&&s.g>=sw1.getLng()-lngE1&&s.g<=ne1.getLng()+lngE1);
-    if(shown1.length===0) shown1 = nearest(W1_STORES,'t','g',30);
-    shown1.slice(0,60).forEach(s=>{
+    // 판매점 마커: 가까운 50개
+    nearest(W1_STORES,'t','g',50).forEach(s=>{
       const c=C[s.lv]||C.mild;
       const ov=new kakao.maps.CustomOverlay({
         position:new kakao.maps.LatLng(s.t,s.g),
@@ -1330,7 +1316,7 @@ function updateSidePanelByView(){
   const sido=nearest?.s?.sido||'', gu=nearest?.s?.gu||'', dong=nearest?.s?.dong||'';
   let regionName='';
   if(lv>=7) regionName=sido;
-  else if(lv>=4) regionName=sido&&gu?`${sido} ${gu}`:sido;
+  else if(lv>=4) regionName=sido&&gu&&gu!==sido+('시')&&gu!==sido?`${sido} ${gu}`:sido;
   else regionName=dong||gu||sido;
   const visible=W1_STORES.filter(s=>inB(s.t,s.g)).sort((a,b)=>b.w-a.w).slice(0,10);
   const title=regionName?`${regionName} 인근 명당`:'인근 명당';
