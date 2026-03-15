@@ -935,9 +935,11 @@ function initMap(){
 
 let _renderTimer = null;
 function scheduleRender(delay){
+  console.log('[MAP] scheduleRender delay='+(delay||350)+' mapMode='+mapMode);
   if(_renderTimer) clearTimeout(_renderTimer);
   _renderTimer = setTimeout(function(){
     _renderTimer = null;
+    console.log('[MAP] scheduleRender 실행 mapMode='+mapMode);
     if(mapMode==='stores'){
       _renderStores();
       updateSidePanelByView();
@@ -993,6 +995,7 @@ function _renderStores(){
   const lv = map.getLevel();
   const cLat = map.getCenter().getLat();
   const cLng = map.getCenter().getLng();
+  console.log('[MAP] _renderStores lv='+lv+' mapMode='+mapMode+' center=('+cLat.toFixed(4)+','+cLng.toFixed(4)+')');
 
   const C = {
     legend:{bg:'linear-gradient(135deg,#B8860B,#DAA520)', bd:'#B8860B', tx:'#fff'},
@@ -1062,12 +1065,16 @@ function _renderStores(){
   } else if(lv === 3 || lv === 4){
     // 구/군 버블: bounds 2배 확장 + nearest 보완
     const bds=map.getBounds(), sw=bds.getSouthWest(), ne=bds.getNorthEast();
+    console.log('[MAP] lv34 bounds sw=('+sw.getLat().toFixed(4)+','+sw.getLng().toFixed(4)+') ne=('+ne.getLat().toFixed(4)+','+ne.getLng().toFixed(4)+')');
     const latE=(ne.getLat()-sw.getLat())*2, lngE=(ne.getLng()-sw.getLng())*2;
     const minLat=sw.getLat()-latE, maxLat=ne.getLat()+latE;
     const minLng=sw.getLng()-lngE, maxLng=ne.getLng()+lngE;
     let shown = GU2_STORES.filter(s=>s.lat>=minLat&&s.lat<=maxLat&&s.lng>=minLng&&s.lng<=maxLng);
+    console.log('[MAP] lv34 minLat='+minLat.toFixed(4)+' maxLat='+maxLat.toFixed(4)+' minLng='+minLng.toFixed(4)+' maxLng='+maxLng.toFixed(4));
+    console.log('[MAP] lv34 shown='+shown.length+'개');
     // bounds 안에 없으면 nearest 10개
     if(shown.length===0) shown = nearest(GU2_STORES,'lat','lng',10);
+    console.log('[MAP] lv34 최종 표시='+shown.length+'개, 첫번째='+(shown[0]?shown[0].gu:'없음'));
     shown.forEach(s=>{
       mkOv(s.gu.replace(/시$/,''), s.w1, s.lat, s.lng, s.lv,
         `zoomToGu('${esc(s.sido)}','${esc(s.gu)}',${s.lat},${s.lng})`);
@@ -1185,7 +1192,7 @@ function zoomToGu(sido, gu, lat, lng){
 function zoomToDong(lat,lng){
   closeInfo();
   map.setCenter(new kakao.maps.LatLng(lat,lng));
-  map.setLevel(1);
+  map.setLevel(3);
   scheduleRender(400);
 }
 
