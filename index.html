@@ -267,6 +267,12 @@
 
     /* kakaoMap: 화면 높이에서 헤더/통계/힌트 빼고 최대한 크게 */
     #kakaoMap { height:calc(100vh - 280px); min-height:480px; max-height:800px; }
+    /* 명당/최신/NEW 탭 PC 레이아웃 */
+    .rank-grid { max-width:960px; margin:0 auto; }
+    #recentGrid { max-width:960px; margin:0 auto; }
+    #newStoresGrid { max-width:960px; margin:0 auto; grid-template-columns:repeat(3,1fr); }
+    .region-filter { max-width:960px; margin:0 auto 14px; }
+    .tab-desc { max-width:960px; margin:0 auto 12px; }
 
     /* 통계 카드 더 컴팩트하게 */
     .stats-row { margin-bottom:12px; }
@@ -291,6 +297,7 @@
      /* ── 명당탭 ── */
     #tab-rank { max-width:1100px; margin:0 auto; }
     .rank-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  #newStoresGrid { grid-template-columns:1fr; }
 
     /* ── 최신탭: 3열 ── */
     .recent-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
@@ -656,7 +663,7 @@
   <!-- 탭 -->
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('map',this)">📍 지도</button>
-    <button class="tab-btn" onclick="switchTab('new',this)" style="position:relative">🔥 NEW</button>
+    <button class="tab-btn" onclick="switchTab('new',this)">🔥 NEW</button>
     <button class="tab-btn" onclick="switchTab('rank',this)">🏆 명당</button>
     <button class="tab-btn" onclick="switchTab('recent',this)">⚡ 최신</button>
     <button class="tab-btn" onclick="switchTab('numbers',this)">📈 기록</button>
@@ -710,7 +717,7 @@
   <!-- NEW TAB -->
   <div id="tab-new" class="tab-content">
     <div class="tab-desc">이번 회차 새롭게 1등이 탄생한 신규 명당</div>
-    <div id="newStoresGrid" style="display:flex;flex-direction:column;gap:12px;padding:4px 0"></div>
+    <div id="newStoresGrid" style="display:grid;gap:12px;padding:4px 0"></div>
   </div>
 
     <div id="tab-rank" class="tab-content">
@@ -1102,6 +1109,7 @@ function renderNewTab(){
   grid.innerHTML = '';
 
   var header = document.createElement('div');
+  header.style.gridColumn = '1/-1';
   header.innerHTML = '<div style="background:linear-gradient(135deg,#FF8C00,#FF4500);border-radius:14px;padding:14px 16px;color:#fff;text-align:center;margin-bottom:4px">'
     + '<div style="font-size:13px;opacity:0.9;margin-bottom:4px">🎯 제 ' + round + '회차 신규 명당</div>'
     + '<div style="font-size:22px;font-weight:900">' + NEW_STORES.length + '곳 새로 탄생!</div>'
@@ -1117,7 +1125,7 @@ function renderNewTab(){
     var ad = (s.addr||'').replace(/'/g,"&#39;");
     div.innerHTML = '<div class="store-card" style="animation-delay:' + (i*0.05) + 's">'
       + '<div style="display:flex;align-items:center;gap:10px">'
-      + '<div style="background:linear-gradient(135deg,#FF8C00,#FF4500);color:#fff;font-size:11px;font-weight:900;padding:3px 8px;border-radius:8px;flex-shrink:0">🔥 NEW</div>'
+      + '<div style="background:linear-gradient(135deg,#FF8C00,#FF4500);color:#fff;font-size:12px;font-weight:900;padding:4px 10px;border-radius:8px;flex-shrink:0">' + s.sido + ' 🔥</div>'
       + '<div style="flex:1;min-width:0">'
       + '<div class="store-name" style="font-size:15px">' + s.n + '</div>'
       + '<div class="store-region" style="font-size:11px;margin-top:2px">📍 ' + s.sido + ' ' + s.gu + '</div>'
