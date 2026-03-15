@@ -1212,8 +1212,13 @@ function zoomToGu(sido, gu, lat, lng){
   // 광역시는 구(區) 버블이 있으므로 lv6, 일반 시/군은 구 없으므로 lv5(동버블)
   const HAS_GU = new Set(['서울','부산','대구','인천','광주','대전','울산']);
   const mob_zu = window.innerWidth < 768;
-  if(HAS_GU.has(sido)) map.setLevel(mob_zu ? 9 : 8);
-  else map.setLevel(mob_zu ? 8 : 7);
+  if(HAS_GU.has(sido)){
+    // 광역시: 구버블 레벨로 이동
+    map.setLevel(mob_zu ? 9 : 8);
+  } else {
+    // 일반 시/군: 구가 없으므로 동버블 레벨로 바로 점프
+    map.setLevel(mob_zu ? 7 : 6);
+  }
   scheduleRender(400);
 
   // 해당 구/시 요약 카드
