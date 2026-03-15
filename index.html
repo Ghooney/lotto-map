@@ -990,22 +990,9 @@ function _renderStores(){
   storeOverlays.forEach(o=>o.setMap(null));
   storeOverlays = [];
 
-  const lv  = map.getLevel();
-  const bds = map.getBounds();
-  const sw  = bds.getSouthWest();
-  const ne  = bds.getNorthEast();
-  // 레벨에 따라 bounds 확장 비율 조정
-  // lv1~4(좁은화면): 크게 확장, lv5~9: 기본 확장
-  const isMobile = window.innerWidth < 768;
-  // padRatio: 화면 밖 데이터도 여유있게 포함 (타이밍 오차 보정)
-  const padRatio = lv <= 2 ? (isMobile ? 4.0 : 3.0)
-                 : lv <= 4 ? (isMobile ? 3.0 : 2.0)
-                 :            (isMobile ? 2.0 : 1.0);
-  const latPad = (ne.getLat() - sw.getLat()) * padRatio;
-  const lngPad = (ne.getLng() - sw.getLng()) * padRatio;
-  const minLat = sw.getLat() - latPad, maxLat = ne.getLat() + latPad;
-  const minLng = sw.getLng() - lngPad, maxLng = ne.getLng() + lngPad;
-  function inB(t,g){ return t>=minLat && t<=maxLat && g>=minLng && g<=maxLng; }
+  const lv = map.getLevel();
+  const cLat = map.getCenter().getLat();
+  const cLng = map.getCenter().getLng();
 
   const C = {
     legend:{bg:'linear-gradient(135deg,#B8860B,#DAA520)', bd:'#B8860B', tx:'#fff'},
@@ -1020,7 +1007,6 @@ function _renderStores(){
   const py = Math.max(3, Math.round(sz*0.1));
   const px = Math.max(7, Math.round(sz*0.22));
 
-  // 동그라미 버블 (16km~1km 시 레벨)
   function mkOvCircle(label, count, lat, lng, lvl, onclick){
     const c = C[lvl] || C.mild;
     const csz = {9:52,8:56,7:52,6:56,5:52}[lv] || 52;
@@ -1061,7 +1047,11 @@ function _renderStores(){
     storeOverlays.push(ov);
   }
 
-  const isMob = window.innerWidth < 768;
+  // 레벨별 표시 거리 임계값 (중심에서 lat+lng 합산 거리)
+  const threshMap = {9:3.0, 8:2.0, 7:1.5, 6:1.0, 5:0.7, 4:0.5, 3:0.5, 2:0.2, 1:0.06};
+  const thresh = threshMap[lv] || 1.0;
+
+  function inRange(lat, lng){ return Math.abs(lat-cLat)+Math.abs(lng-cLng) <= thresh; }
 
   if(lv >= 5){
     // lv5~9: 시 버블
@@ -1069,74 +1059,58 @@ function _renderStores(){
       window._guSiCache = GU_STORES.filter(s=>s.gu.endsWith('시')||s.gu==='세종시');
     }
     window._guSiCache.forEach(s=>{
-      if(!inB(s.lat, s.lng)) return;
-      const siLabel = s.gu.replace(/시$/, '');
-      mkOvCircle(siLabel, s.w1, s.lat, s.lng, s.lv,
+      if(!inRange(s.lat, s.lng)) return;
+      mkOvCircle(s.gu.replace(/시$/,''), s.w1, s.lat, s.lng, s.lv,
         `zoomToGu('${esc(s.sido)}','${esc(s.gu)}',${s.lat},${s.lng})`);
     });
     const METRO_SET = new Set(['서울','부산','대구','인천','광주','대전','울산']);
-    REGIONS.filter(r=>METRO_SET.has(r.name)&&inB(r.lat,r.lng)).forEach(r=>{
+    REGIONS.filter(r=>METRO_SET.has(r.name)).forEach(r=>{
       const gov=GOV_CENTERS[r.name];
       const lat=gov?gov.lat:r.lat, lng=gov?gov.lng:r.lng;
+      if(!inRange(lat,lng)) return;
       mkOvCircle(r.name, r.count, lat, lng, r.level,
         `zoomToRegionStores('${esc(r.name)}',${lat},${lng})`);
     });
 
   } else if(lv === 3 || lv === 4){
-    // lv3~4: 현재 중심에서 가장 가까운 sido 전체 구/군 + 인접 타시도 표시
-    const cLat34 = map.getCenter().getLat();
-    const cLng34 = map.getCenter().getLng();
-    const nearestSido34 = GU2_STORES.reduce((best, s) => {
-      const d = Math.abs(s.lat-cLat34) + Math.abs(s.lng-cLng34);
-      return (!best || d < best.d) ? {sido:s.sido, d} : best;
-    }, null)?.sido || '';
-    GU2_STORES.filter(s => {
-      const d = Math.abs(s.lat-cLat34) + Math.abs(s.lng-cLng34);
-      return s.sido === nearestSido34 || d < 0.3;
-    }).forEach(s => {
-      const guLabel = s.gu.replace(/시$/, '');
-      mkOv(guLabel, s.w1, s.lat, s.lng, s.lv,
+    // lv3~4: 구/군 버블 — 가장 가까운 sido 전체 + 인접
+    const nearSido = GU2_STORES.reduce((best,s)=>{
+      const d=Math.abs(s.lat-cLat)+Math.abs(s.lng-cLng);
+      return(!best||d<best.d)?{sido:s.sido,d}:best;
+    },null)?.sido||'';
+    GU2_STORES.filter(s=>{
+      const d=Math.abs(s.lat-cLat)+Math.abs(s.lng-cLng);
+      return s.sido===nearSido || d<0.3;
+    }).forEach(s=>{
+      mkOv(s.gu.replace(/시$/,''), s.w1, s.lat, s.lng, s.lv,
         `zoomToGu('${esc(s.sido)}','${esc(s.gu)}',${s.lat},${s.lng})`);
     });
 
   } else if(lv === 2){
-    // lv2: 동 버블 - 중심 ±0.2도 내
-    const cLat2 = map.getCenter().getLat();
-    const cLng2 = map.getCenter().getLng();
-    const dong2 = DONG_STORES.filter(s =>
-      Math.abs(s.lat-cLat2) < 0.2 && Math.abs(s.lng-cLng2) < 0.2
-    ).slice(0,80);
-    dong2.forEach(s=>{
-      const label = s.dong !== s.gu ? s.dong : s.gu;
-      mkOv(label, s.w1, s.lat, s.lng, s.lv,
+    // lv2: 동 버블
+    DONG_STORES.filter(s=>inRange(s.lat,s.lng)).slice(0,80).forEach(s=>{
+      mkOv(s.dong!==s.gu?s.dong:s.gu, s.w1, s.lat, s.lng, s.lv,
         `zoomToDong(${s.lat},${s.lng})`);
     });
 
   } else if(lv === 1){
-    // lv1: 판매점 마커 - 중심 ±0.05도 내
-    const cLat1 = map.getCenter().getLat();
-    const cLng1 = map.getCenter().getLng();
-    const inB1 = W1_STORES.filter(s=>
-      Math.abs(s.t-cLat1) < 0.05 && Math.abs(s.g-cLng1) < 0.05
-    );
-    let cnt = 0;
-    for(let i=0; i<inB1.length && cnt<80; i++){
-      const s = inB1[i];
-      const c = C[s.lv] || C.mild;
-      const ov = new kakao.maps.CustomOverlay({
-        position: new kakao.maps.LatLng(s.t, s.g),
-        content: `<div class="marker-wrap" onclick="showStoreInfo('${esc(s.n)}','${s.sido} ${s.gu}',${s.w},${s.w2},'${s.lv}',${s.t},${s.g},'${esc(s.a)}')">
+    // lv1: 판매점 마커
+    W1_STORES.filter(s=>inRange(s.t,s.g)).slice(0,80).forEach(s=>{
+      const c=C[s.lv]||C.mild;
+      const ov=new kakao.maps.CustomOverlay({
+        position:new kakao.maps.LatLng(s.t,s.g),
+        content:`<div class="marker-wrap" onclick="showStoreInfo('${esc(s.n)}','${s.sido} ${s.gu}',${s.w},${s.w2},'${s.lv}',${s.t},${s.g},'${esc(s.a)}')">
           <div class="marker-bubble ${s.lv}">🏆 ${s.n} <small>${s.w}회</small></div></div>`,
-        yAnchor: 1
+        yAnchor:1
       });
       ov.setMap(map);
       storeOverlays.push(ov);
-      cnt++;
-    }
+    });
   }
-    updateMapHint(lv);
+  updateMapHint(lv);
   updateSidePanelByView();
 }
+
 
 function zoomToRegionStores(name, lat, lng){
   closeInfo();
