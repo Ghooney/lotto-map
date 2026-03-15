@@ -859,8 +859,9 @@ function zoomToRegion(name, lat, lng, count, top, level){
   map.setCenter(new kakao.maps.LatLng(clat, clng));
   window._guSiCache = null;
   map.setLevel(5);
-  // 지도 이동 완료 후 1회 렌더링
-
+  mapMode = 'stores';
+  regionOverlays.forEach(o=>o.setMap(null));
+  scheduleRender(400);
 
   const regionStores = W1_STORES.filter(s=>(s.sido||'').startsWith(name));
   const top1 = regionStores[0];
@@ -919,18 +920,23 @@ function goToRankTab(region){
 function initMap(){
   map=new kakao.maps.Map(document.getElementById('kakaoMap'),{center:new kakao.maps.LatLng(36.5,127.9),level:13});
   showRegionBubbles();
-  // zoom_changed: 모드 전환만
   kakao.maps.event.addListener(map,'zoom_changed',onZoomChanged);
-  // idle: bounds 확정 후 실제 렌더링 (드래그/줌 모두 커버)
-  kakao.maps.event.addListener(map,'idle',onMapIdle);
+  kakao.maps.event.addListener(map,'dragend',function(){
+    if(mapMode==='stores') scheduleRender();
+  });
   renderSidePanel(TOP_STORES,'역대 명당 TOP 10');
 }
 
-function onMapIdle(){
-  if(mapMode==='stores'){
-    _renderStores();
-    updateSidePanelByView();
-  }
+let _renderTimer = null;
+function scheduleRender(delay){
+  if(_renderTimer) clearTimeout(_renderTimer);
+  _renderTimer = setTimeout(function(){
+    _renderTimer = null;
+    if(mapMode==='stores'){
+      _renderStores();
+      updateSidePanelByView();
+    }
+  }, delay || 350);
 }
 
 function onZoomChanged(){
@@ -941,10 +947,10 @@ function onZoomChanged(){
   updateMapHint(lv);
 
   if(lv <= storeThreshold && mapMode === 'region'){
-    // 모드 전환만 — 실제 렌더링은 idle에서
     mapMode = 'stores';
     regionOverlays.forEach(o=>o.setMap(null));
     storeOverlays.forEach(o=>o.setMap(null)); storeOverlays=[];
+    scheduleRender();
   } else if(lv > storeThreshold && mapMode === 'stores'){
     mapMode = 'region';
     storeOverlays.forEach(o=>o.setMap(null)); storeOverlays=[];
@@ -953,8 +959,9 @@ function onZoomChanged(){
     document.getElementById('mapTitle').textContent='📍 전국 지역별 당첨 현황 — 지역을 클릭해보세요!';
     document.getElementById('zoomHintText').textContent='지역 버블을 클릭하면 해당 지역 명당을 볼 수 있어요';
     renderSidePanel(TOP_STORES,'역대 명당 TOP 10');
+  } else if(mapMode === 'stores'){
+    scheduleRender();
   }
-  // stores 모드 렌더링은 idle 이벤트(onMapIdle)에서 처리
 }
 
 
@@ -1156,7 +1163,7 @@ function zoomToGu(sido, gu, lat, lng){
 
   map.setCenter(new kakao.maps.LatLng(clat, clng));
   map.setLevel(3);
-
+  scheduleRender(400);
 
   // 해당 구/시 요약 카드
   const stores = W1_STORES.filter(s=>s.sido===sido && s.gu===gu);
@@ -1197,6 +1204,7 @@ function zoomToDong(lat,lng){
   closeInfo();
   map.setCenter(new kakao.maps.LatLng(lat,lng));
   map.setLevel(1);
+  scheduleRender(400);
 }
 
 function showStoreInfo(name,region,win1,win2,level,lat,lng,addr){
