@@ -1085,11 +1085,22 @@ function _renderStores(){
     });
 
   } else if(lv === 3 || lv === 4){
-    // lv3~4: 구/군 버블 (GU_STORES 사용)
-    const inB34 = GU_STORES.filter(s=>inB(s.lat,s.lng));
-    inB34.slice(0,100).forEach(s=>{
-      mkOv(s.gu, s.w1, s.lat, s.lng, s.lv,
-        `zoomToGu('${esc(s.sido)}','${esc(s.gu)}',${s.lat},${s.lng})`);
+    // lv3~4: sido+gu 집계로 구/군 버블 생성
+    const grp34 = {};
+    DONG_STORES.forEach(s=>{
+      if(!inB(s.lat,s.lng)) return;
+      const k = s.sido+'|'+s.gu;
+      if(!grp34[k]) grp34[k]={sido:s.sido,gu:s.gu,w1:0,slat:0,slng:0,n:0,lv:'cool'};
+      grp34[k].w1 += s.w1;
+      grp34[k].slat += s.lat;
+      grp34[k].slng += s.lng;
+      grp34[k].n++;
+    });
+    Object.values(grp34).forEach(g=>{
+      const lat = g.slat/g.n, lng = g.slng/g.n;
+      const lv34 = g.w1>100?'hot':g.w1>50?'warm':g.w1>10?'mild':'cool';
+      mkOv(g.gu, g.w1, lat, lng, lv34,
+        `zoomToGu('${esc(g.sido)}','${esc(g.gu)}',${lat},${lng})`);
     });
 
   } else if(lv === 2){
