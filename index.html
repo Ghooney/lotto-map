@@ -672,22 +672,21 @@
         <div style="position:relative">
 
           <div id="kakaoMap"></div>
-          <!-- 스와이프 가이드 -->
-          <div style="position:absolute;bottom:0;left:0;right:0;height:36px;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:8;">
-            <div style="background:rgba(0,0,0,0.35);border-radius:12px;padding:5px 18px;display:flex;flex-direction:column;align-items:center;gap:3px">
-              <div style="width:32px;height:3px;background:rgba(255,255,255,0.7);border-radius:2px"></div>
-              <div style="font-size:10px;color:rgba(255,255,255,0.85);font-weight:600;letter-spacing:0.3px;font-family:'Noto Sans KR',sans-serif">스크롤</div>
-            </div>
+          </div>
+          <div class="zoom-hint">
+            <span class="zoom-hint-icon">🔍</span>
+            <span id="zoomHintText">지역 버블을 클릭하면 해당 지역 명당을 볼 수 있어요 · 줌인하면 개별 명당 마커가 나타나요</span>
+          </div>
+          <div class="map-legend">
+            <span class="legend-dot legend"></span><span>최상위 명당</span>
+            <span class="legend-dot hot"></span><span>상위 명당</span>
+            <span class="legend-dot warm"></span><span>중위 명당</span>
+            <span class="legend-dot cool"></span><span>일반 명당</span>
           </div>
           <button class="my-location-btn" onclick="goToMyLocation()" title="현재 위치로 이동" style="width:auto;border-radius:20px;padding:0 14px;font-size:12px;font-weight:700;white-space:nowrap">📍 내 위치</button>
           <div id="mapLoadingMsg">🔄 데이터 로딩 중...</div>
         </div>
-        <div class="zoom-hint">
-          <span class="zoom-hint-icon">🔍</span>
-          <span id="zoomHintText">지역 버블을 클릭하면 해당 지역 명당을 볼 수 있어요 · 줌인하면 개별 명당 마커가 나타나요</span>
-        </div>
-        <div class="map-legend">
-          <div class="legend-item"><div class="legend-dot" style="background:#B8860B"></div>최상위 명당</div>
+최상위 명당</div>
           <div class="legend-item"><div class="legend-dot" style="background:#D94F00"></div>상위 명당</div>
           <div class="legend-item"><div class="legend-dot" style="background:#E07B00"></div>중위 명당</div>
           <div class="legend-item"><div class="legend-dot" style="background:#C8920A"></div>일반 명당</div>
@@ -1868,7 +1867,10 @@ function switchTab(id,btn){
   document.querySelectorAll('.tab-btn').forEach(el=>el.classList.remove('active'));
   document.getElementById('tab-'+id).classList.add('active');
   if(btn)btn.classList.add('active');
-  if(id==='map'&&map)setTimeout(()=>kakao.maps.event.trigger(map,'resize'),100);
+  if(id==='map'&&map){
+    setTimeout(()=>kakao.maps.event.trigger(map,'resize'),100);
+    setTimeout(()=>scrollToMap(), 150);
+  }
   if(id==='numbers')renderNumbers();
   if(id==='rank')renderRank('all');
   if(id==='recent')renderRecent();
