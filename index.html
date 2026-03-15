@@ -1078,26 +1078,48 @@ function _renderStores(){
     });
 
   } else if(lv === 3 || lv === 4){
-    // lv3~4: 구/군 버블 (GU2_STORES 정적 데이터)
-    GU2_STORES.forEach(s=>{
-      if(!inB(s.lat,s.lng)) return;
+    // lv3~4: 현재 중심에서 가까운 구/군 표시
+    const cLat34 = map.getCenter().getLat();
+    const cLng34 = map.getCenter().getLng();
+    // 가장 가까운 항목의 sido 찾기
+    let nearestSido = GU2_STORES.reduce((best, s) => {
+      const d = Math.abs(s.lat-cLat34) + Math.abs(s.lng-cLng34);
+      return (!best || d < best.d) ? {sido: s.sido, d} : best;
+    }, null)?.sido || '';
+    // 같은 sido의 구/군 전부 + 인접 지역 일부
+    const shown34 = new Set();
+    GU2_STORES.forEach(s => {
+      const d = Math.abs(s.lat-cLat34) + Math.abs(s.lng-cLng34);
+      if(s.sido === nearestSido || d < 0.3) {
+        shown34.add(s);
+      }
+    });
+    shown34.forEach(s => {
       const guLabel = s.gu.replace(/시$/, '');
       mkOv(guLabel, s.w1, s.lat, s.lng, s.lv,
         `zoomToGu('${esc(s.sido)}','${esc(s.gu)}',${s.lat},${s.lng})`);
     });
 
   } else if(lv === 2){
-    // lv2: 동 버블
-    const inB2 = DONG_STORES.filter(s=>inB(s.lat,s.lng));
-    inB2.slice(0,100).forEach(s=>{
+    // lv2: 동 버블 - 중심 ±0.2도 내
+    const cLat2 = map.getCenter().getLat();
+    const cLng2 = map.getCenter().getLng();
+    const dong2 = DONG_STORES.filter(s =>
+      Math.abs(s.lat-cLat2) < 0.2 && Math.abs(s.lng-cLng2) < 0.2
+    ).slice(0,80);
+    dong2.forEach(s=>{
       const label = s.dong !== s.gu ? s.dong : s.gu;
       mkOv(label, s.w1, s.lat, s.lng, s.lv,
         `zoomToDong(${s.lat},${s.lng})`);
     });
 
   } else if(lv === 1){
-    // lv1: 판매점 마커
-    const inB1 = W1_STORES.filter(s=>inB(s.t,s.g));
+    // lv1: 판매점 마커 - 중심 ±0.05도 내
+    const cLat1 = map.getCenter().getLat();
+    const cLng1 = map.getCenter().getLng();
+    const inB1 = W1_STORES.filter(s=>
+      Math.abs(s.t-cLat1) < 0.05 && Math.abs(s.g-cLng1) < 0.05
+    );
     let cnt = 0;
     for(let i=0; i<inB1.length && cnt<80; i++){
       const s = inB1[i];
