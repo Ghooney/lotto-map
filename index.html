@@ -721,8 +721,8 @@
   <!-- RECENT TAB -->
   <div id="tab-recent" class="tab-content">
     
-    <div class="tab-desc">최근 회차별 1등 당첨 매장과 당첨번호를 확인해보세요</div>
     <div style="max-width:1100px;margin:0 auto;overflow:visible">
+      <div class="tab-desc">최근 회차별 1등 당첨 매장과 당첨번호를 확인해보세요</div>
       <div class="recent-grid" id="recentGrid"></div>
       <div id="recentMoreWrap"></div>
     </div>
@@ -979,9 +979,22 @@ function initMap(){
   showRegionBubbles();
   kakao.maps.event.addListener(map,'zoom_changed',onZoomChanged);
   kakao.maps.event.addListener(map,'dragend',function(){
-    if(mapMode==='stores') scheduleRender();
+    const lv = map.getLevel();
+    if(lv <= 9){
+      mapMode = 'stores';
+      regionOverlays.forEach(o=>o.setMap(null));
+      scheduleRender();
+    }
   });
   renderSidePanel(TOP_STORES,'역대 명당 TOP 10');
+  // 초기 로딩 후 현재 레벨 체크 (외부에서 특정 lv로 진입 시 대응)
+  setTimeout(()=>{
+    if(map.getLevel() <= 9){
+      mapMode = 'stores';
+      regionOverlays.forEach(o=>o.setMap(null));
+      scheduleRender(100);
+    }
+  }, 500);
 }
 
 let _renderTimer = null;
@@ -1003,12 +1016,9 @@ function onZoomChanged(){
   updateMapHint(lv);
 
   if(lv <= 9){
-    // stores 모드
-    if(mapMode === 'region'){
-      mapMode = 'stores';
-      regionOverlays.forEach(o=>o.setMap(null));
-      storeOverlays.forEach(o=>o.setMap(null)); storeOverlays=[];
-    }
+    // stores 모드 - regionOverlays 항상 숨김
+    mapMode = 'stores';
+    regionOverlays.forEach(o=>o.setMap(null));
     scheduleRender();
   } else {
     // region 모드 (lv10 이상)
@@ -1041,6 +1051,8 @@ function updateMapHint(lv){
 
 
 function _renderStores(){
+  // region 버블 항상 숨김
+  regionOverlays.forEach(o=>o.setMap(null));
   storeOverlays.forEach(o=>o.setMap(null));
   storeOverlays = [];
 
@@ -1123,8 +1135,10 @@ function _renderStores(){
     const show = [...GU2_STORES.filter(s=>s.sido===nearSido),
                   ...nearest(GU2_STORES.filter(s=>s.sido!==nearSido),'lat','lng',5)];
     show.forEach(s=>{
+      // 구(區)/군(郡)은 주황, 시(市)는 빨강(구 없는 일반 시)
+      const isGu = s.gu.endsWith('구') || s.gu.endsWith('군');
       addBubble(s.gu.replace(/시$/,''), s.w1, s.lat, s.lng,
-        "zoomToGu('"+s.sido+"','"+s.gu+"',"+s.lat+","+s.lng+")", COLOR_GU);
+        "zoomToGu('"+s.sido+"','"+s.gu+"',"+s.lat+","+s.lng+")", isGu ? COLOR_GU : COLOR_SI);
     });
 
   } else if(lv>=DONG_MIN && lv<=DONG_MAX){
