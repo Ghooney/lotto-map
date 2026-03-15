@@ -284,8 +284,8 @@
     .bottom-bar-inner { max-width:100%; }
 
      /* ── 명당탭 ── */
-    #tab-rank .tab-content { max-width:960px; margin:0 auto; }
-    .rank-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    #tab-rank { max-width:1100px; margin:0 auto; }
+    .rank-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
 
     /* ── 최신탭: 3열 ── */
     .recent-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
@@ -552,7 +552,7 @@
     .tab-btn { font-size:14px; padding:8px 18px; flex:none; white-space:nowrap; }
 
     /* 2. main */
-    main { padding:16px 48px 0 !important; }
+    main { padding:16px 48px 100px !important; }
 
     /* 3. stats-row 숨김 */
     .stats-row { display:none !important; }
@@ -693,7 +693,7 @@
   <div id="tab-recent" class="tab-content">
     
     <div class="tab-desc">최근 회차별 1등 당첨 매장과 당첨번호를 확인해보세요</div>
-    <div style="max-width:1100px;margin:0 auto">
+    <div style="max-width:1100px;margin:0 auto;overflow:visible">
       <div class="recent-grid" id="recentGrid"></div>
       <div id="recentMoreWrap"></div>
     </div>
@@ -1437,6 +1437,8 @@ function renderRecentGrid(){
   recentPage = 0;
   const el = document.getElementById('recentGrid');
   el.innerHTML = '';
+  const wrap = document.getElementById('recentMoreWrap');
+  if(wrap) wrap.innerHTML = '';
   // IntersectionObserver 해제
   if(window._recentObserver){ window._recentObserver.disconnect(); window._recentObserver=null; }
   loadRecentPage();
