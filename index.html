@@ -141,7 +141,7 @@
   .badge-live { background:linear-gradient(135deg,#FF8C00,#FF6B00); border:none; border-radius:20px; padding:7px 14px; font-size:12px; color:#fff; font-weight:700; box-shadow:0 2px 10px rgba(255,107,0,0.4); flex-shrink:0; }
 
   .tabs { display:flex; gap:4px; margin-top:18px; background:rgba(255,255,255,0.05); border-radius:12px; padding:4px; }
-  .tab-btn { flex:1; padding:10px 0; border-radius:9px; border:none; cursor:pointer; font-size:14px; font-family:'Noto Sans KR',sans-serif; background:transparent; color:#555; transition:all 0.2s; }
+  .tab-btn { flex:1; padding:10px 6px; border-radius:9px; border:none; cursor:pointer; font-size:14px; font-family:'Noto Sans KR',sans-serif; background:transparent; color:#555; transition:all 0.2s; letter-spacing:-0.3px; }
   .tab-btn.active { background:linear-gradient(135deg,#FFB800,#FF6B00); color:#000; font-weight:700; }
 
   main { position:relative; z-index:5; padding:16px 10px 100px; }
@@ -959,8 +959,10 @@ function zoomToRegion(name, lat, lng, count, top, level){
   var _isMob = window.innerWidth < 768;
   var _lv = _isMob ? 10 : 9;
   var _dpp = {9:0.000553, 10:0.001106}[_lv] || 0.000553;
-  var _ratio = _isMob ? 0.12 : 0.30;
-  var _off = _dpp * _mapH * _ratio;
+  // 카드(약 200px) 중앙 배치: 마커를 지도 중앙에서 카드높이만큼 위로
+  var _cardH = 200;
+  var _off = _dpp * (_mapH / 2 - _cardH);
+  if(_off < 0) _off = 0;
   var _centerLat = clat - _off;
   map.setCenter(new kakao.maps.LatLng(_centerLat, clng));
   mapMode = 'stores';
@@ -1371,7 +1373,9 @@ function zoomToRegionStores(name, lat, lng){
   var _guMapH = _guMapEl ? _guMapEl.offsetHeight : 400;
   var _guIsMob = window.innerWidth < 768;
   var _guDpp = 0.000138; // lv6(1km)
-  var _guOff = _guDpp * _guMapH * (_guIsMob ? 0.10 : 0.15);
+  var _guCardH = 220;
+  var _guOff = _guDpp * (_guMapH / 2 - _guCardH);
+  if(_guOff < 0) _guOff = 0;
   var _guCenterLat = clat - _guOff;
   map.setCenter(new kakao.maps.LatLng(_guCenterLat, clng));
 
@@ -1414,7 +1418,9 @@ function zoomToGu(sido, gu, lat, lng){
   var _guMapH = _guMapEl ? _guMapEl.offsetHeight : 400;
   var _guIsMob = window.innerWidth < 768;
   var _guDpp = 0.000138; // lv6(1km)
-  var _guOff = _guDpp * _guMapH * (_guIsMob ? 0.10 : 0.15);
+  var _guCardH = 220;
+  var _guOff = _guDpp * (_guMapH / 2 - _guCardH);
+  if(_guOff < 0) _guOff = 0;
   var _guCenterLat = clat - _guOff;
   map.setCenter(new kakao.maps.LatLng(_guCenterLat, clng));
 
@@ -1526,10 +1532,12 @@ function showStoreInfo(name,region,win1,win2,level,lat,lng,addr){
     var lv = map.getLevel();
     var degPerPx = {1:0.0000043,2:0.0000086,3:0.0000172,4:0.0000344,5:0.0000688};
     var dpp = degPerPx[lv] || 0.0000172;
-    // 지도 높이의 20% 만큼 중심을 아래로 → 마커가 상단 30% 지점에
-    var isMob = window.innerWidth < 768;
-    var ratio = isMob ? 0.12 : 0.30;
-    var off = dpp * mapH * ratio;
+    // 마커를 지도 중앙보다 카드 높이(약 230px)만큼 위에 배치
+    // → 카드가 마커 아래에 펼쳐져 지도 중앙에 위치
+    var cardH = 230;
+    var off = dpp * (mapH / 2 - cardH);
+    // off가 음수면 마커가 아래로 내려가므로 최소 0 보장
+    if(off < 0) off = 0;
     map.setCenter(new kakao.maps.LatLng(lat - off, lng));
   })();
 }
