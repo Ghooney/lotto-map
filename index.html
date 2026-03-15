@@ -1065,7 +1065,8 @@ function _renderStores(){
     }
     window._guSiCache.forEach(s=>{
       if(!inB(s.lat, s.lng)) return;
-      mkOvCircle(s.gu, s.w1, s.lat, s.lng, s.lv,
+      const siLabel = s.gu.replace(/시$/, '');
+      mkOvCircle(siLabel, s.w1, s.lat, s.lng, s.lv,
         `zoomToGu('${esc(s.sido)}','${esc(s.gu)}',${s.lat},${s.lng})`);
     });
     const METRO_SET = new Set(['서울','부산','대구','인천','광주','대전','울산']);
@@ -1080,7 +1081,8 @@ function _renderStores(){
     // lv3~4: 구/군 버블 (GU2_STORES 정적 데이터)
     GU2_STORES.forEach(s=>{
       if(!inB(s.lat,s.lng)) return;
-      mkOv(s.gu, s.w1, s.lat, s.lng, s.lv,
+      const guLabel = s.gu.replace(/시$/, '');
+      mkOv(guLabel, s.w1, s.lat, s.lng, s.lv,
         `zoomToGu('${esc(s.sido)}','${esc(s.gu)}',${s.lat},${s.lng})`);
     });
 
