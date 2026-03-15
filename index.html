@@ -1106,14 +1106,14 @@ function _renderStores(){
   // PC:     시lv8~9, 구lv6~7, 동lv4~5, 판매점lv1~3
   // 모바일: 시lv7~9, 구lv5~6, 동lv3~4, 판매점lv1~2 (한 단계 일찍 시작)
   // PC:     시/도=lv13, 시=lv10~12, 구=lv8~9, 동=lv6~7, 판매점=lv1~5
-  // 모바일: 시/도=lv13, 시=lv11~12, 구=lv9~10, 동=lv7~8, 판매점=lv1~6
-  const SI_MAX   = 12;          // 시버블 최대 lv (PC/모바일 공통)
-  const SI_MIN   = mob ? 11 : 10;
-  const GU_MAX   = mob ? 10 : 9;
-  const GU_MIN   = mob ? 9 : 8;
-  const DONG_MAX = mob ? 8 : 7;
-  const DONG_MIN = mob ? 7 : 6;
-  const MK_MAX   = mob ? 6 : 5;
+  // 모바일: 시/도=lv13, 시=lv10~12, 구=lv8~9, 동=lv5~8, 판매점=lv1~4
+  const SI_MAX   = 12;
+  const SI_MIN   = mob ? 10 : 10;  // PC/모바일 동일
+  const GU_MAX   = mob ? 9 : 9;    // PC/모바일 동일
+  const GU_MIN   = mob ? 8 : 8;    // PC/모바일 동일
+  const DONG_MAX = mob ? 8 : 7;    // 모바일: 동버블 최대 lv8 (구와 겹침 → 구 우선)
+  const DONG_MIN = mob ? 5 : 6;    // 모바일: lv5부터 동버블
+  const MK_MAX   = mob ? 4 : 5;    // 모바일: lv4까지 판매점
 
   if(lv >= SI_MIN && lv <= SI_MAX){
     // 시 버블 (lv10~12 PC / lv11~12 모바일)
@@ -1217,7 +1217,7 @@ function zoomToGu(sido, gu, lat, lng){
     map.setLevel(mob_zu ? 9 : 8);
   } else {
     // 일반 시/군: 구가 없으므로 동버블 레벨로 바로 점프
-    map.setLevel(mob_zu ? 7 : 6);
+    map.setLevel(mob_zu ? 6 : 6);
   }
   scheduleRender(400);
 
@@ -1322,7 +1322,14 @@ function showStoreInfo(name,region,win1,win2,level,lat,lng,addr){
     yAnchor:0,zIndex:10
   });
   infoOverlay.setMap(map);
-  map.setCenter(new kakao.maps.LatLng(lat,lng));
+  // 판매점을 지도 상단쪽에 배치 → 카드가 화면 중앙에 오도록
+  // 현재 줌레벨에 따라 위도 오프셋 조정
+  (function(){
+    const lv = map.getLevel();
+    const offsets = {1:0.003,2:0.006,3:0.012,4:0.025,5:0.05};
+    const off = offsets[lv] || 0.012;
+    map.setCenter(new kakao.maps.LatLng(lat - off, lng));
+  })();
   // 명당 마커가 보이는 레벨(100m)로 맞추기
   if(map.getLevel() > 2) map.setLevel(2);
 }
@@ -1956,9 +1963,11 @@ function switchTab(id,btn){
     document.querySelectorAll('.tab-btn').forEach(b=>{if(b.textContent.includes('지도'))b.click();});
     setTimeout(()=>scrollToMapStore(), 100);
     setTimeout(()=>{
-      map.setCenter(new kakao.maps.LatLng(lat,lng));
       if(mapMode!=='stores'){mapMode='stores';regionOverlays.forEach(o=>o.setMap(null));}
       map.setLevel(3);
+      // 판매점을 상단에, 카드가 중앙에 오도록 오프셋
+      const _off = 0.012;
+      map.setCenter(new kakao.maps.LatLng(lat - _off, lng));
       scheduleRender(200);
       setTimeout(()=>showStoreInfo(name,region,w1,w2,level,lat,lng,addr),400);
     },350);
