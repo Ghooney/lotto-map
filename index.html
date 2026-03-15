@@ -765,7 +765,7 @@
 
   <!-- 시 BEST 9 모달 -->
   <div class="nearby-modal" id="best9Modal" onclick="if(event.target===this)closeBest9Modal()">
-    <div class="nearby-sheet" style="max-height:85vh;overflow-y:auto">
+    <div class="nearby-sheet" style="max-height:85vh;overflow-y:auto;max-width:500px;padding:20px 16px 40px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
         <div class="nearby-title" id="best9Title">🏆 명당 상위 리스트</div>
         <div onclick="closeBest9Modal()" style="font-size:20px;cursor:pointer;color:#555;padding:4px 8px">✕</div>
@@ -948,7 +948,7 @@ function zoomToRegion(name, lat, lng, count, top, level){
   var _dpp = {9:0.000553, 10:0.001106}[_lv] || 0.000553;
   var _ratio = _isMob ? 0.15 : 0.22;
   var _off = _dpp * _mapH * _ratio;
-  var _centerLat = clat - _off;
+  var _centerLat = clat + _off;
   map.setCenter(new kakao.maps.LatLng(_centerLat, clng));
   mapMode = 'stores';
   regionOverlays.forEach(o=>o.setMap(null));
@@ -1287,7 +1287,7 @@ function zoomToRegionStores(name, lat, lng){
     var dpp = 0.0000172; // lv3
     var ratio = isMob ? 0.15 : 0.22;
     var off = dpp * mapH * ratio;
-    map.setCenter(new kakao.maps.LatLng(clat - off, clng));
+    map.setCenter(new kakao.maps.LatLng(clat + off, clng));
   })();
 
   const regionStores = W1_STORES.filter(s=>(s.sido||'').startsWith(name));
@@ -1303,7 +1303,7 @@ function zoomToRegionStores(name, lat, lng){
   var _guIsMob = window.innerWidth < 768;
   var _guDpp = 0.000138; // lv6(1km)
   var _guOff = _guDpp * _guMapH * (_guIsMob ? 0.15 : 0.22);
-  var _guCenterLat = clat - _guOff;
+  var _guCenterLat = clat + _guOff;
   map.setCenter(new kakao.maps.LatLng(_guCenterLat, clng));
 
   infoOverlay = new kakao.maps.CustomOverlay({
@@ -1346,7 +1346,7 @@ function zoomToGu(sido, gu, lat, lng){
   var _guIsMob = window.innerWidth < 768;
   var _guDpp = 0.000138; // lv6(1km)
   var _guOff = _guDpp * _guMapH * (_guIsMob ? 0.15 : 0.22);
-  var _guCenterLat = clat - _guOff;
+  var _guCenterLat = clat + _guOff;
   map.setCenter(new kakao.maps.LatLng(_guCenterLat, clng));
 
   infoOverlay = new kakao.maps.CustomOverlay({
@@ -1450,7 +1450,7 @@ function showStoreInfo(name,region,win1,win2,level,lat,lng,addr){
   // 마커를 지도 상단 약 30% 지점에 배치 → 카드가 지도 중앙에 위치
   // 지도 중심을 마커 아래쪽으로 내려야 마커가 위로 올라감
   // lat + off = 중심을 북쪽(위)으로 → 마커는 상대적으로 아래에 위치 (반대)
-  // lat - off = 중심을 남쪽(아래)으로 → 마커는 위쪽에 위치 ✅
+  // lat + off = 중심을 남쪽(아래)으로 → 마커는 위쪽에 위치 ✅
   (function(){
     var mapEl = document.getElementById('kakaoMap');
     var mapH = mapEl ? mapEl.offsetHeight : 400;
@@ -1461,7 +1461,7 @@ function showStoreInfo(name,region,win1,win2,level,lat,lng,addr){
     var isMob = window.innerWidth < 768;
     var ratio = isMob ? 0.15 : 0.22;
     var off = dpp * mapH * ratio;
-    map.setCenter(new kakao.maps.LatLng(lat - off, lng));
+    map.setCenter(new kakao.maps.LatLng(lat + off, lng));
   })();
 }
 
