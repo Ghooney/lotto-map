@@ -924,13 +924,15 @@ function initMap(){
 
 function onZoomChanged(){
   const lv = map.getLevel();
+  const isMobile = window.innerWidth < 768;
+  const storeThreshold = isMobile ? 7 : 9;  // 모바일은 lv7, PC는 lv9에서 전환
 
-  if(lv <= 9 && mapMode === 'region'){
+  if(lv <= storeThreshold && mapMode === 'region'){
     mapMode = 'stores';
     regionOverlays.forEach(o=>o.setMap(null));
     showTopStoreMarkers();
     updateMapHint(lv);
-  } else if(lv > 9 && mapMode === 'stores'){
+  } else if(lv > storeThreshold && mapMode === 'stores'){
     mapMode = 'region';
     storeOverlays.forEach(o=>o.setMap(null)); storeOverlays=[];
     regionOverlays.forEach(o=>o.setMap(map));
@@ -978,7 +980,10 @@ function _renderStores(){
   const ne  = bds.getNorthEast();
   // 레벨에 따라 bounds 확장 비율 조정
   // lv1~4(좁은화면): 크게 확장, lv5~9: 기본 확장
-  const padRatio = lv <= 4 ? 1.5 : 0.5;
+  const isMobile = window.innerWidth < 768;
+  const padRatio = lv <= 2 ? (isMobile ? 3.0 : 2.0)
+                 : lv <= 4 ? (isMobile ? 2.5 : 1.5)
+                 :            (isMobile ? 1.5 : 0.5);
   const latPad = (ne.getLat() - sw.getLat()) * padRatio;
   const lngPad = (ne.getLng() - sw.getLng()) * padRatio;
   const minLat = sw.getLat() - latPad, maxLat = ne.getLat() + latPad;
@@ -1039,8 +1044,11 @@ function _renderStores(){
     storeOverlays.push(ov);
   }
 
-  if(lv >= 5 && lv <= 9){
-    // 시 버블 (16km~1km) - 동그라미 형태
+  const isMob = window.innerWidth < 768;
+  const upperLv = isMob ? 7 : 9;  // 모바일은 lv5~7, PC는 lv5~9
+
+  if(lv >= 5 && lv <= upperLv){
+    // 시 버블 - 동그라미 형태
     if(!window._guSiCache){
       window._guSiCache = GU_STORES.filter(s=>s.gu.endsWith('시')||s.gu==='세종시');
     }
@@ -1095,21 +1103,18 @@ function _renderStores(){
     });
 
   } else if(lv === 2){
-    // 동/읍면 버블 (100m)
-    let cnt = 0;
-    for(let i=0; i<DONG_STORES.length && cnt<80; i++){
-      const s = DONG_STORES[i];
-      if(!inB(s.lat, s.lng)) continue;
+    // 동/읍면 버블 (100m) - bounds 안의 것만 표시
+    const inBounds2 = DONG_STORES.filter(s=>inB(s.lat,s.lng));
+    inBounds2.slice(0,120).forEach(s=>{
       mkOv(s.dong, s.w1, s.lat, s.lng, s.lv, `zoomToDong(${s.lat},${s.lng})`);
-      cnt++;
-    }
+    });
 
   } else if(lv === 1){
-    // 명당 마커 (50m)
+    // 명당 마커 (50m) - bounds 안의 것 우선
+    const inBounds1 = W1_STORES.filter(s=>inB(s.t,s.g));
     let cnt = 0;
-    for(let i=0; i<W1_STORES.length && cnt<50; i++){
-      const s = W1_STORES[i];
-      if(!inB(s.t, s.g)) continue;
+    for(let i=0; i<inBounds1.length && cnt<80; i++){
+      const s = inBounds1[i];
       const c = C[s.lv] || C.mild;
       const ov = new kakao.maps.CustomOverlay({
         position: new kakao.maps.LatLng(s.t, s.g),
