@@ -990,42 +990,48 @@ function goToRankTab(region){
 
 
 
-// ── 시 BEST 9 모달 ──
+// ── 시 명당 상위 리스트 모달 ──
+var _best9Stores = [];
+
 function showBest9(sido, gu){
-  var stores = W1_STORES
+  _best9Stores = W1_STORES
     .filter(function(s){ return s.sido === sido && s.gu === gu; })
     .sort(function(a,b){ return b.w - a.w; })
-    .slice(0, 9);
+    .slice(0, 20);
 
-  document.getElementById('best9Title').textContent = '🏆 ' + gu.replace(/시$/, '') + ' 명당 BEST 9';
-  document.getElementById('best9Sub').textContent = sido + ' ' + gu + ' · 역대 1등 배출 TOP ' + Math.min(9, stores.length);
+  document.getElementById('best9Title').textContent = '\u{1F3C6} ' + gu.replace(/시$/, '') + ' 명당 상위 리스트';
+  document.getElementById('best9Sub').textContent = sido + ' ' + gu + ' \u00b7 역대 1등 배출 상위 ' + _best9Stores.length + '곳';
 
   var levelColor = {legend:'#CC0000', hot:'#D94F00', warm:'#E07B00', mild:'#9E7A2E', cool:'#9E7A2E'};
-
+  var medals = ['\u{1F947}','\u{1F948}','\u{1F949}'];
   var html = '';
-  for(var i=0; i<stores.length; i++){
-    var s = stores[i];
+  for(var i=0; i<_best9Stores.length; i++){
+    var s = _best9Stores[i];
     var rank = i+1;
-    var medal = rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':(rank+'위');
+    var medal = i < 3 ? medals[i] : (rank + '위');
     var col = levelColor[s.lv] || '#9E7A2E';
-    var addrShort = s.a ? s.a.split(' ').slice(0,4).join(' ') : '';
-    var nm = (s.n||'').replace(/'/g,"&#39;");
-    var ad = (s.a||'').replace(/'/g,"&#39;");
-    html += '<div style="background:var(--bg-card);border:1.5px solid '+col+';border-radius:12px;'
-          + 'padding:10px 8px;cursor:pointer;transition:transform 0.15s"'
-          + ' onclick="closeBest9Modal();jumpToStore('+s.t+','+s.g+',\''+nm+'\',\''+s.sido+' '+s.gu+'\','+s.w+','+s.w2+',\''+s.lv+'\',\''+ad+'\')"'
-          + ' onmouseover="this.style.transform=\'scale(1.03)\'"'
-          + ' onmouseout="this.style.transform=\'scale(1)\'">'
-          + '<div style="font-size:16px;text-align:center;margin-bottom:4px">'+medal+'</div>'
-          + '<div style="font-size:11px;font-weight:900;color:var(--text-primary);text-align:center;margin-bottom:4px;line-height:1.3;word-break:keep-all">'+s.n+'</div>'
-          + '<div style="text-align:center;margin-bottom:6px">'
-          +   '<span style="background:'+col+';color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px">'+s.w+'회</span>'
-          + '</div>'
-          + '<div style="font-size:9px;color:var(--text-secondary);text-align:center;line-height:1.4">'+addrShort+'</div>'
+    var addrShort = (s.a||'').split(' ').slice(0,4).join(' ');
+    html += '<div style="background:var(--bg-card);border:1.5px solid ' + col + ';border-radius:12px;padding:10px 8px;cursor:pointer" onclick="goToBest9Store(' + i + ')">'
+          + '<div style="font-size:16px;text-align:center;margin-bottom:4px">' + medal + '</div>'
+          + '<div style="font-size:11px;font-weight:900;color:var(--text-primary);text-align:center;margin-bottom:4px;line-height:1.3;word-break:keep-all">' + s.n + '</div>'
+          + '<div style="text-align:center;margin-bottom:6px"><span style="background:' + col + ';color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px">' + s.w + '회</span></div>'
+          + '<div style="font-size:9px;color:var(--text-secondary);text-align:center;line-height:1.4">' + addrShort + '</div>'
           + '</div>';
   }
   document.getElementById('best9Grid').innerHTML = html;
   document.getElementById('best9Modal').style.display = 'flex';
+}
+
+function goToBest9Store(idx){
+  var s = _best9Stores[idx];
+  if(!s) return;
+  closeBest9Modal();
+  document.querySelectorAll('.tab-btn').forEach(function(b){
+    if(b.textContent.includes('지도')) b.click();
+  });
+  setTimeout(function(){
+    jumpToStore(s.t, s.g, s.n, s.sido + ' ' + s.gu, s.w, s.w2, s.lv, s.a);
+  }, 400);
 }
 
 function closeBest9Modal(){
@@ -1306,7 +1312,7 @@ function zoomToGu(sido, gu, lat, lng){
         style="width:100%;padding:11px;background:linear-gradient(135deg,#FF8C00,#FF4500);
         border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:900;
         cursor:pointer;font-family:'Noto Sans KR',sans-serif">
-        🏆 ${gu.replace(/시$/,'')} 명당 BEST 9
+        🏆 ${gu.replace(/시$/,'')} 명당 상위 리스트
       </button>
     </div>`,
     yAnchor: 0, zIndex: 10
@@ -1380,18 +1386,21 @@ function showStoreInfo(name,region,win1,win2,level,lat,lng,addr){
     yAnchor:0,zIndex:10
   });
   infoOverlay.setMap(map);
-  // 판매점 위치로 이동 + 레벨 설정 (외부에서 안 한 경우만)
+  // 판매점 위치로 이동 + 레벨 설정
   if(map.getLevel() > 5) map.setLevel(3);
-  // PC는 지도가 크므로 오프셋 크게, 모바일은 작게
-  const _lv = map.getLevel();
-  const _isMob = window.innerWidth < 768;
-  // PC: 카드가 지도 아래쪽 40% 영역에 뜨므로 마커를 위쪽 30% 지점에 배치
-  // 모바일: 카드가 지도 아래 30% 영역
-  const _offMapPC  = {1:0.006,2:0.010,3:0.018,4:0.036,5:0.072};
-  const _offMapMob = {1:0.003,2:0.005,3:0.009,4:0.018,5:0.036};
-  const _offMap = _isMob ? _offMapMob : _offMapPC;
-  const _off = _offMap[_lv] || (_isMob ? 0.009 : 0.018);
-  map.setCenter(new kakao.maps.LatLng(lat - _off, lng));
+  // 지도 픽셀 높이 기반으로 위도 오프셋 계산
+  // 카드 높이 약 200px → 마커를 지도 상단 1/4 지점에 배치
+  (function(){
+    var mapEl = document.getElementById('kakaoMap');
+    var mapH = mapEl ? mapEl.offsetHeight : 400;
+    var lv = map.getLevel();
+    // 카카오맵 lv별 1픽셀 = ?도 (위도 기준)
+    var degPerPx = {1:0.0000043,2:0.0000086,3:0.0000172,4:0.0000344,5:0.0000688};
+    var dpp = degPerPx[lv] || 0.0000172;
+    // 지도 중심을 마커보다 (mapH * 0.25)px 아래로 내림
+    var off = dpp * mapH * 0.28;
+    map.setCenter(new kakao.maps.LatLng(lat - off, lng));
+  })();
 }
 
 function closeInfo(){if(infoOverlay){infoOverlay.setMap(null);infoOverlay=null;}}
@@ -1515,8 +1524,8 @@ function renderRank(filter){
         <div style="display:flex;align-items:center;gap:3px;flex-shrink:0">${ballW1}${ballW2}</div>
       </div>
       <div style="margin-top:10px;display:flex;gap:8px">
-        <button class="btn-secondary" onclick="jumpToStore(${s.t},${s.g},'${esc(s.n)}','${s.sido} ${s.gu}',${s.w},${s.w2},'${s.lv}','${esc(s.a)}')">📍 지도에서 보기</button>
-        <button class="btn-secondary" onclick="openKakaoNavi(${s.t},${s.g})">🧭 길안내</button>
+        <button class="btn-secondary" style="background:var(--bg-card);border:1px solid var(--border)" onclick="jumpToStore(${s.t},${s.g},'${esc(s.n)}','${s.sido} ${s.gu}',${s.w},${s.w2},'${s.lv}','${esc(s.a)}')">📍 지도에서 보기</button>
+        <button class="btn-secondary" style="background:var(--bg-card);border:1px solid var(--border)" onclick="openKakaoNavi(${s.t},${s.g})">🧭 길안내</button>
       </div>
     </div>`;
   }).join('');
@@ -1612,9 +1621,9 @@ function loadRecentPage(){
 
 
 function renderRecentCard(r,lotto,isLatest){
-  const sh=r.stores.map(s=>{
-    const isInternet = s.name.includes('인터넷') || s.addr.includes('dhlottery');
-    const clickable = s.lat && s.lat!==0 && !isInternet;
+  const sh=r.stores.filter(s=>!(s.name.includes('인터넷') || s.addr.includes('dhlottery'))).map(s=>{
+    const isInternet = false;
+    const clickable = s.lat && s.lat!==0;
     return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--border)">
       <div style="font-size:13px;flex-shrink:0">${isInternet?'🌐':'📍'}</div>
       <div style="flex:1;min-width:0;${clickable?'cursor:pointer;':''}${clickable?'':'opacity:0.6;'}"
