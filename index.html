@@ -914,7 +914,7 @@ function zoomToRegion(name, lat, lng, count, top, level){
   const clng = gov ? gov.lng : lng;
   map.setCenter(new kakao.maps.LatLng(clat, clng));
   window._guSiCache = null;
-  map.setLevel(window.innerWidth<768 ? 6 : 7);
+  map.setLevel(window.innerWidth<768 ? 8 : 9);
   mapMode = 'stores';
   regionOverlays.forEach(o=>o.setMap(null));
   scheduleRender(400);
@@ -980,7 +980,7 @@ function initMap(){
   kakao.maps.event.addListener(map,'zoom_changed',onZoomChanged);
   kakao.maps.event.addListener(map,'dragend',function(){
     const lv = map.getLevel();
-    if(lv <= 9){
+    if(lv <= 11){
       mapMode = 'stores';
       regionOverlays.forEach(o=>o.setMap(null));
       scheduleRender();
@@ -989,7 +989,7 @@ function initMap(){
   renderSidePanel(TOP_STORES,'역대 명당 TOP 10');
   // 초기 로딩 후 현재 레벨 체크 (외부에서 특정 lv로 진입 시 대응)
   setTimeout(()=>{
-    if(map.getLevel() <= 9){
+    if(map.getLevel() <= 11){
       mapMode = 'stores';
       regionOverlays.forEach(o=>o.setMap(null));
       scheduleRender(100);
@@ -1015,13 +1015,13 @@ function onZoomChanged(){
   const lv = map.getLevel();
   updateMapHint(lv);
 
-  if(lv <= 9){
+  if(lv <= 11){
     // stores 모드 - regionOverlays 항상 숨김
     mapMode = 'stores';
     regionOverlays.forEach(o=>o.setMap(null));
     scheduleRender();
   } else {
-    // region 모드 (lv10 이상)
+    // region 모드 (lv12 이상)
     if(mapMode === 'stores'){
       mapMode = 'region';
       storeOverlays.forEach(o=>o.setMap(null)); storeOverlays=[];
@@ -1105,14 +1105,14 @@ function _renderStores(){
   // 모바일: lv7~9=시, lv5~6=구, lv3~4=동, lv1~2=판매점
   // PC:     시lv8~9, 구lv6~7, 동lv4~5, 판매점lv1~3
   // 모바일: 시lv7~9, 구lv5~6, 동lv3~4, 판매점lv1~2 (한 단계 일찍 시작)
-  // PC:     시lv8~9, 구lv6~7, 동lv4~5, 판매점lv1~3
-  // 모바일: 시lv7~9, 구lv5~6, 동lv3~4, 판매점lv1~2
-  const SI_MIN   = mob ? 7 : 8;
-  const GU_MAX   = mob ? 6 : 7;
-  const GU_MIN   = mob ? 5 : 6;
-  const DONG_MAX = mob ? 4 : 5;
-  const DONG_MIN = mob ? 3 : 4;
-  const MK_MAX   = mob ? 2 : 3;
+  // PC:     시lv10~11, 구lv8~9, 동lv6~7, 판매점lv1~5
+  // 모바일: 시lv9~11, 구lv7~8, 동lv5~6, 판매점lv1~4
+  const SI_MIN   = mob ? 9 : 10;
+  const GU_MAX   = mob ? 8 : 9;
+  const GU_MIN   = mob ? 7 : 8;
+  const DONG_MAX = mob ? 6 : 7;
+  const DONG_MIN = mob ? 5 : 6;
+  const MK_MAX   = mob ? 4 : 5;
 
   if(lv >= SI_MIN){
     // 시 버블
@@ -1211,8 +1211,8 @@ function zoomToGu(sido, gu, lat, lng){
   // 광역시는 구(區) 버블이 있으므로 lv6, 일반 시/군은 구 없으므로 lv5(동버블)
   const HAS_GU = new Set(['서울','부산','대구','인천','광주','대전','울산']);
   const mob_zu = window.innerWidth < 768;
-  if(HAS_GU.has(sido)) map.setLevel(mob_zu ? 5 : 6);
-  else map.setLevel(mob_zu ? 4 : 5);
+  if(HAS_GU.has(sido)) map.setLevel(mob_zu ? 7 : 8);
+  else map.setLevel(mob_zu ? 6 : 7);
   scheduleRender(400);
 
   // 해당 구/시 요약 카드
@@ -1253,7 +1253,7 @@ function zoomToGu(sido, gu, lat, lng){
 function zoomToDong(lat,lng){
   closeInfo();
   map.setCenter(new kakao.maps.LatLng(lat,lng));
-  map.setLevel(window.innerWidth<768 ? 2 : 3);
+  map.setLevel(window.innerWidth<768 ? 4 : 5);
   scheduleRender(400);
 }
 
