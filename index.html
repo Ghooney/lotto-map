@@ -857,9 +857,8 @@ function zoomToRegion(name, lat, lng, count, top, level){
   const clat = gov ? gov.lat : lat;
   const clng = gov ? gov.lng : lng;
   map.setCenter(new kakao.maps.LatLng(clat, clng));
-  const isMob = window.innerWidth < 768;
-  map.setLevel(isMob ? 6 : 4);
   window._guSiCache = null;
+  map.setLevel(5);
   // 지도 이동 완료 후 1회 렌더링
 
 
@@ -937,7 +936,7 @@ function onMapIdle(){
 function onZoomChanged(){
   const lv = map.getLevel();
   const isMobile = window.innerWidth < 768;
-  const storeThreshold = isMobile ? 7 : 9;
+  const storeThreshold = 9;
 
   updateMapHint(lv);
 
@@ -1059,10 +1058,9 @@ function _renderStores(){
   }
 
   const isMob = window.innerWidth < 768;
-  const upperLv = isMob ? 7 : 9;  // 모바일은 lv5~7, PC는 lv5~9
 
-  if(lv >= 5 && lv <= upperLv){
-    // 시 버블 - 동그라미 형태
+  if(lv >= 5){
+    // lv5~9: 시 버블
     if(!window._guSiCache){
       window._guSiCache = GU_STORES.filter(s=>s.gu.endsWith('시')||s.gu==='세종시');
     }
@@ -1071,34 +1069,16 @@ function _renderStores(){
       mkOvCircle(s.gu, s.w1, s.lat, s.lng, s.lv,
         `zoomToGu('${esc(s.sido)}','${esc(s.gu)}',${s.lat},${s.lng})`);
     });
-    const METRO_SET2 = new Set(['서울','부산','대구','인천','광주','대전','울산']);
-    REGIONS.filter(r=>METRO_SET2.has(r.name)&&inB(r.lat,r.lng)).forEach(r=>{
+    const METRO_SET = new Set(['서울','부산','대구','인천','광주','대전','울산']);
+    REGIONS.filter(r=>METRO_SET.has(r.name)&&inB(r.lat,r.lng)).forEach(r=>{
       const gov=GOV_CENTERS[r.name];
       const lat=gov?gov.lat:r.lat, lng=gov?gov.lng:r.lng;
       mkOvCircle(r.name, r.count, lat, lng, r.level,
         `zoomToRegionStores('${esc(r.name)}',${lat},${lng})`);
     });
 
-  } else if(lv === 4){
-    // 시 버블
-    if(!window._guSiCache){
-      window._guSiCache = GU_STORES.filter(s=>s.gu.endsWith('시')||s.gu==='세종시');
-    }
-    window._guSiCache.forEach(s=>{
-      if(!inB(s.lat, s.lng)) return;
-      mkOv(s.gu, s.w1, s.lat, s.lng, s.lv,
-        `zoomToGu('${esc(s.sido)}','${esc(s.gu)}',${s.lat},${s.lng})`);
-    });
-    const METRO_SET = new Set(['서울','부산','대구','인천','광주','대전','울산']);
-    REGIONS.filter(r=>METRO_SET.has(r.name)&&inB(r.lat,r.lng)).forEach(r=>{
-      const gov=GOV_CENTERS[r.name];
-      const lat=gov?gov.lat:r.lat, lng=gov?gov.lng:r.lng;
-      mkOv(r.name, r.count, lat, lng, r.level,
-        `zoomToRegionStores('${esc(r.name)}',${lat},${lng})`);
-    });
-
-  } else if(lv === 3){
-    // 구/군 버블
+  } else if(lv === 3 || lv === 4){
+    // lv3~4: 구/군 버블
     const inB3 = DONG_STORES.filter(s=>inB(s.lat,s.lng));
     inB3.slice(0,100).forEach(s=>{
       const label = s.dong !== s.gu ? s.dong : s.gu;
@@ -1107,7 +1087,7 @@ function _renderStores(){
     });
 
   } else if(lv === 2){
-    // 판매점 버블
+    // lv2: 판매점 버블
     const inB2 = W1_STORES.filter(s=>inB(s.t,s.g));
     inB2.slice(0,100).forEach(s=>{
       mkOv(s.n, s.w, s.t, s.g, s.lv,
@@ -1115,11 +1095,11 @@ function _renderStores(){
     });
 
   } else if(lv === 1){
-    // 명당 마커
-    const inBounds1 = W1_STORES.filter(s=>inB(s.t,s.g));
+    // lv1: 명당 마커
+    const inB1 = W1_STORES.filter(s=>inB(s.t,s.g));
     let cnt = 0;
-    for(let i=0; i<inBounds1.length && cnt<80; i++){
-      const s = inBounds1[i];
+    for(let i=0; i<inB1.length && cnt<80; i++){
+      const s = inB1[i];
       const c = C[s.lv] || C.mild;
       const ov = new kakao.maps.CustomOverlay({
         position: new kakao.maps.LatLng(s.t, s.g),
@@ -1132,7 +1112,6 @@ function _renderStores(){
       cnt++;
     }
   }
-
     updateMapHint(lv);
   updateSidePanelByView();
 }
@@ -1176,8 +1155,7 @@ function zoomToGu(sido, gu, lat, lng){
   const clng = city ? city.lng : lng;
 
   map.setCenter(new kakao.maps.LatLng(clat, clng));
-  const isMobGu = window.innerWidth < 768;
-  map.setLevel(isMobGu ? 4 : 3);
+  map.setLevel(4);
 
 
   // 해당 구/시 요약 카드
@@ -1218,8 +1196,7 @@ function zoomToGu(sido, gu, lat, lng){
 function zoomToDong(lat,lng){
   closeInfo();
   map.setCenter(new kakao.maps.LatLng(lat,lng));
-  const isMobD = window.innerWidth < 768;
-  map.setLevel(isMobD ? 2 : 1);
+  map.setLevel(2);
 
 }
 
