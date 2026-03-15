@@ -1078,24 +1078,24 @@ function _renderStores(){
     });
 
   } else if(lv === 3 || lv === 4){
-    // lv3~4: 구/군 버블
-    const inB3 = DONG_STORES.filter(s=>inB(s.lat,s.lng));
-    inB3.slice(0,100).forEach(s=>{
+    // lv3~4: 구/군 버블 (GU_STORES 사용)
+    const inB34 = GU_STORES.filter(s=>inB(s.lat,s.lng));
+    inB34.slice(0,100).forEach(s=>{
+      mkOv(s.gu, s.w1, s.lat, s.lng, s.lv,
+        `zoomToGu('${esc(s.sido)}','${esc(s.gu)}',${s.lat},${s.lng})`);
+    });
+
+  } else if(lv === 2){
+    // lv2: 동 버블
+    const inB2 = DONG_STORES.filter(s=>inB(s.lat,s.lng));
+    inB2.slice(0,100).forEach(s=>{
       const label = s.dong !== s.gu ? s.dong : s.gu;
       mkOv(label, s.w1, s.lat, s.lng, s.lv,
         `zoomToDong(${s.lat},${s.lng})`);
     });
 
-  } else if(lv === 2){
-    // lv2: 판매점 버블
-    const inB2 = W1_STORES.filter(s=>inB(s.t,s.g));
-    inB2.slice(0,100).forEach(s=>{
-      mkOv(s.n, s.w, s.t, s.g, s.lv,
-        `showStoreInfo('${esc(s.n)}','${s.sido} ${s.gu}',${s.w},${s.w2},'${s.lv}',${s.t},${s.g},'${esc(s.a)}')`);
-    });
-
   } else if(lv === 1){
-    // lv1: 명당 마커
+    // lv1: 판매점 마커
     const inB1 = W1_STORES.filter(s=>inB(s.t,s.g));
     let cnt = 0;
     for(let i=0; i<inB1.length && cnt<80; i++){
@@ -1155,7 +1155,7 @@ function zoomToGu(sido, gu, lat, lng){
   const clng = city ? city.lng : lng;
 
   map.setCenter(new kakao.maps.LatLng(clat, clng));
-  map.setLevel(4);
+  map.setLevel(3);
 
 
   // 해당 구/시 요약 카드
@@ -1196,8 +1196,7 @@ function zoomToGu(sido, gu, lat, lng){
 function zoomToDong(lat,lng){
   closeInfo();
   map.setCenter(new kakao.maps.LatLng(lat,lng));
-  map.setLevel(2);
-
+  map.setLevel(1);
 }
 
 function showStoreInfo(name,region,win1,win2,level,lat,lng,addr){
