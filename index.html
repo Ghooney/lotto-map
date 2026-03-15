@@ -158,13 +158,16 @@
 
   .zoom-hint { display:flex; align-items:center; gap:8px; background:var(--zoom-hint-bg); border:1px solid var(--zoom-hint-border); border-radius:10px; padding:8px 12px; margin-top:10px; font-size:11px; color:#777; }
   .zoom-hint-icon { font-size:14px; animation:pulse 2s infinite; }
+  .map-legend { display:flex; flex-wrap:wrap; gap:8px 14px; padding:8px 4px 4px; justify-content:center; }
+  .legend-item { display:flex; align-items:center; gap:5px; font-size:11px; color:#666; }
+  .legend-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
   .legend-item { display:flex; align-items:center; gap:4px; font-size:9px; color:#555; }
 
   /* 마커 */
   .marker-wrap   { position:relative; display:flex; flex-direction:column; align-items:center; }
   .marker-bubble { border-radius:20px; padding:5px 10px; font-size:12px; font-weight:900; white-space:nowrap; cursor:pointer; box-shadow:0 2px 12px rgba(0,0,0,0.4); border:2px solid rgba(255,255,255,0.3); font-family:'Noto Sans KR',sans-serif; transition:transform 0.15s; }
   .marker-bubble:hover { transform:scale(1.1); }
-  .marker-bubble.legend{ background:linear-gradient(135deg,#B8860B,#DAA520); color:#fff; border-color:#B8860B; }
+  .marker-bubble.legend{ background:linear-gradient(135deg,#B8860B,#DAA520); color:#fff; border-color:#CC0000; }
 .marker-bubble.hot   { background:linear-gradient(135deg,#C89000,#F0B800); color:#fff; border-color:#D94F00; }
 .marker-bubble.warm  { background:linear-gradient(135deg,#A87800,#D4A000); color:#fff; border-color:#E07B00; }
 .marker-bubble.mild  { background:linear-gradient(135deg,#8C6400,#B88C00); color:#fff; border-color:#C8920A; }
@@ -646,20 +649,19 @@
       <div class="map-wrap" id="mapWrap">
         <div class="map-title" id="mapTitle">📍 전국 지역별 1등 당첨 현황 — 지역을 클릭해보세요!</div>
         <div style="position:relative">
-
           <div id="kakaoMap"></div>
-          </div>
-          <div class="zoom-hint">
-            <span class="zoom-hint-icon">🔍</span>
-            <span id="zoomHintText">지역 버블을 클릭하면 해당 지역 명당을 볼 수 있어요 · 줌인하면 개별 명당 마커가 나타나요</span>
-          </div>
           <button class="my-location-btn" onclick="goToMyLocation()" title="현재 위치로 이동" style="width:auto;border-radius:20px;padding:0 14px;font-size:12px;font-weight:700;white-space:nowrap">📍 내 위치</button>
           <div id="mapLoadingMsg">🔄 데이터 로딩 중...</div>
         </div>
-최상위 명당</div>
+        <div class="zoom-hint">
+          <span class="zoom-hint-icon">🔍</span>
+          <span id="zoomHintText">지역 버블을 클릭하면 해당 지역 명당을 볼 수 있어요 · 줌인하면 개별 명당 마커가 나타나요</span>
+        </div>
+        <div class="map-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#CC0000"></div>최상위 명당</div>
           <div class="legend-item"><div class="legend-dot" style="background:#D94F00"></div>상위 명당</div>
           <div class="legend-item"><div class="legend-dot" style="background:#E07B00"></div>중위 명당</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#C8920A"></div>일반 명당</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#9E7A2E"></div>일반 명당</div>
         </div>
       </div>
 
@@ -1715,13 +1717,22 @@ function toggleAcc(id){
 }
 
 
+// 지도 탭 클릭: 타이틀 상단으로
 function scrollToMap(){
+  const wrapEl = document.getElementById('mapWrap') || document.getElementById('kakaoMap');
+  if(wrapEl){
+    const headerH = document.querySelector('header')?.offsetHeight || 120;
+    const top = wrapEl.getBoundingClientRect().top + window.scrollY - headerH - 8;
+    window.scrollTo({top: Math.max(0, top), behavior:'smooth'});
+  }
+}
+// 판매점 지도 보기: 지도 중간+인근명당 함께 노출
+function scrollToMapStore(){
   const wrapEl = document.getElementById('mapWrap') || document.getElementById('kakaoMap');
   if(wrapEl){
     const headerH = document.querySelector('header')?.offsetHeight || 120;
     const wrapH = wrapEl.offsetHeight || 400;
     const wrapTop = wrapEl.getBoundingClientRect().top + window.scrollY;
-    // 지도 중간 지점으로 스크롤 → 지도 하단 + 인근 명당 리스트 함께 노출
     const scrollTarget = wrapTop + wrapH * 0.45 - window.innerHeight * 0.5;
     window.scrollTo({top: Math.max(wrapTop - headerH, scrollTarget), behavior:'smooth'});
   }
@@ -1729,7 +1740,7 @@ function scrollToMap(){
 
 function goToMapStore(lat,lng,name,region,count,level,addr){
   switchTab('map',document.querySelector('.tab-btn'));
-  setTimeout(()=>scrollToMap(), 100);
+  setTimeout(()=>scrollToMapStore(), 100);
   setTimeout(()=>{
     map.setCenter(new kakao.maps.LatLng(lat,lng));
     if(mapMode!=='stores'){mapMode='stores';regionOverlays.forEach(o=>o.setMap(null));}
@@ -1902,7 +1913,7 @@ function switchTab(id,btn){
   
   function jumpToStore(lat,lng,name,region,w1,w2,level,addr){
     document.querySelectorAll('.tab-btn').forEach(b=>{if(b.textContent.includes('지도'))b.click();});
-    setTimeout(()=>scrollToMap(), 100);
+    setTimeout(()=>scrollToMapStore(), 100);
     setTimeout(()=>{
       map.setCenter(new kakao.maps.LatLng(lat,lng));
       if(mapMode!=='stores'){mapMode='stores';regionOverlays.forEach(o=>o.setMap(null));}
