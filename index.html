@@ -857,7 +857,9 @@ function zoomToRegion(name, lat, lng, count, top, level){
   const clat = gov ? gov.lat : lat;
   const clng = gov ? gov.lng : lng;
   map.setCenter(new kakao.maps.LatLng(clat, clng));
-  map.setLevel(4);
+  const isMob = window.innerWidth < 768;
+  map.setLevel(isMob ? 6 : 4);
+  window._guSiCache = null; // bounds 변경 시 캐시 리셋
 
   const regionStores = W1_STORES.filter(s=>(s.sido||'').startsWith(name));
   const top1 = regionStores[0];
@@ -969,7 +971,9 @@ function showTopStoreMarkers(){
   // 즉시 기존 버블 제거 (잔상 방지)
   storeOverlays.forEach(o=>o.setMap(null));
   storeOverlays = [];
-  _storeTimer = setTimeout(_renderStores, 150);
+  // 모바일은 지도 이동 완료 대기 시간을 더 길게
+  const delay = window.innerWidth < 768 ? 300 : 150;
+  _storeTimer = setTimeout(_renderStores, delay);
 }
 
 function _renderStores(){
@@ -1050,37 +1054,47 @@ function _renderStores(){
   const upperLv = isMob ? 7 : 9;  // 모바일은 lv5~7, PC는 lv5~9
 
   if(lv >= 5 && lv <= upperLv){
-    // 시 버블 - 동그라미 형태
+    // 시 버블 - 동그라미 형태 (bounds 대신 중심 거리 기반)
+    const cLat = map.getCenter().getLat();
+    const cLng = map.getCenter().getLng();
+    const distThresh = isMob ? 2.5 : 1.5; // 위경도 거리 임계값
     if(!window._guSiCache){
       window._guSiCache = GU_STORES.filter(s=>s.gu.endsWith('시')||s.gu==='세종시');
     }
     window._guSiCache.forEach(s=>{
-      if(!inB(s.lat, s.lng)) return;
+      const dist = Math.abs(s.lat-cLat) + Math.abs(s.lng-cLng);
+      if(dist > distThresh) return;
       mkOvCircle(s.gu, s.w1, s.lat, s.lng, s.lv,
         `zoomToGu('${esc(s.sido)}','${esc(s.gu)}',${s.lat},${s.lng})`);
     });
     const METRO_SET2 = new Set(['서울','부산','대구','인천','광주','대전','울산','세종']);
-    REGIONS.filter(r=>METRO_SET2.has(r.name)&&inB(r.lat,r.lng)).forEach(r=>{
+    REGIONS.filter(r=>METRO_SET2.has(r.name)).forEach(r=>{
       const gov=GOV_CENTERS[r.name];
       const lat=gov?gov.lat:r.lat, lng=gov?gov.lng:r.lng;
+      const dist = Math.abs(lat-cLat) + Math.abs(lng-cLng);
+      if(dist > distThresh) return;
       mkOvCircle(r.name, r.count, lat, lng, r.level,
         `zoomToRegionStores('${esc(r.name)}',${lat},${lng})`);
     });
 
   } else if(lv === 4){
-    // 시 버블 (500m) - 시청 위치
+    // 시 버블 - 거리 기반 필터
+    const cLat4 = map.getCenter().getLat();
+    const cLng4 = map.getCenter().getLng();
+    const dist4 = isMob ? 2.0 : 1.0;
     if(!window._guSiCache){
       window._guSiCache = GU_STORES.filter(s=>s.gu.endsWith('시')||s.gu==='세종시');
     }
     window._guSiCache.forEach(s=>{
-      if(!inB(s.lat, s.lng)) return;
+      if(Math.abs(s.lat-cLat4)+Math.abs(s.lng-cLng4) > dist4) return;
       mkOv(s.gu, s.w1, s.lat, s.lng, s.lv,
         `zoomToGu('${esc(s.sido)}','${esc(s.gu)}',${s.lat},${s.lng})`);
     });
     const METRO_SET = new Set(['서울','부산','대구','인천','광주','대전','울산','세종']);
-    REGIONS.filter(r=>METRO_SET.has(r.name)&&inB(r.lat,r.lng)).forEach(r=>{
+    REGIONS.filter(r=>METRO_SET.has(r.name)).forEach(r=>{
       const gov=GOV_CENTERS[r.name];
       const lat=gov?gov.lat:r.lat, lng=gov?gov.lng:r.lng;
+      if(Math.abs(lat-cLat4)+Math.abs(lng-cLng4) > dist4) return;
       mkOv(r.name, r.count, lat, lng, r.level,
         `zoomToRegionStores('${esc(r.name)}',${lat},${lng})`);
     });
@@ -1164,7 +1178,8 @@ function zoomToGu(sido, gu, lat, lng){
   const clng = city ? city.lng : lng;
 
   map.setCenter(new kakao.maps.LatLng(clat, clng));
-  map.setLevel(3);
+  const isMobGu = window.innerWidth < 768;
+  map.setLevel(isMobGu ? 4 : 3);
 
   // 해당 구/시 요약 카드
   const stores = W1_STORES.filter(s=>s.sido===sido && s.gu===gu);
@@ -1204,7 +1219,8 @@ function zoomToGu(sido, gu, lat, lng){
 function zoomToDong(lat,lng){
   closeInfo();
   map.setCenter(new kakao.maps.LatLng(lat,lng));
-  map.setLevel(1);
+  const isMobD = window.innerWidth < 768;
+  map.setLevel(isMobD ? 2 : 1);
 }
 
 function showStoreInfo(name,region,win1,win2,level,lat,lng,addr){
