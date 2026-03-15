@@ -1380,16 +1380,13 @@ function showStoreInfo(name,region,win1,win2,level,lat,lng,addr){
     yAnchor:0,zIndex:10
   });
   infoOverlay.setMap(map);
-  // 판매점을 지도 상단쪽에 배치 → 카드가 화면 중앙에 오도록
-  // 현재 줌레벨에 따라 위도 오프셋 조정
-  (function(){
-    const lv = map.getLevel();
-    const offsets = {1:0.003,2:0.006,3:0.012,4:0.025,5:0.05};
-    const off = offsets[lv] || 0.012;
-    map.setCenter(new kakao.maps.LatLng(lat - off, lng));
-  })();
-  // 명당 마커가 보이는 레벨(100m)로 맞추기
-  if(map.getLevel() > 2) map.setLevel(2);
+  // 판매점 위치로 이동 + 레벨 설정 (외부에서 안 한 경우만)
+  if(map.getLevel() > 5) map.setLevel(3);
+  // 판매점을 지도 상단에 배치 → 카드가 화면 중앙에 오도록 오프셋
+  const _lv = map.getLevel();
+  const _offMap = {1:0.003,2:0.005,3:0.009,4:0.018,5:0.036};
+  const _off = _offMap[_lv] || 0.009;
+  map.setCenter(new kakao.maps.LatLng(lat - _off, lng));
 }
 
 function closeInfo(){if(infoOverlay){infoOverlay.setMap(null);infoOverlay=null;}}
@@ -1848,9 +1845,10 @@ function goToMapStore(lat,lng,name,region,count,level,addr){
   switchTab('map',document.querySelector('.tab-btn'));
   setTimeout(()=>scrollToMapStore(), 100);
   setTimeout(()=>{
-    map.setCenter(new kakao.maps.LatLng(lat,lng));
-    if(mapMode!=='stores'){mapMode='stores';regionOverlays.forEach(o=>o.setMap(null));}
+    mapMode='stores';
+    regionOverlays.forEach(o=>o.setMap(null));
     map.setLevel(3);
+    map.setCenter(new kakao.maps.LatLng(lat, lng));
     scheduleRender(200);
     setTimeout(()=>showStoreInfo(name,region,count,level,lat,lng,addr), 300);
   },200);
@@ -2021,11 +2019,10 @@ function switchTab(id,btn){
     document.querySelectorAll('.tab-btn').forEach(b=>{if(b.textContent.includes('지도'))b.click();});
     setTimeout(()=>scrollToMapStore(), 100);
     setTimeout(()=>{
-      if(mapMode!=='stores'){mapMode='stores';regionOverlays.forEach(o=>o.setMap(null));}
+      mapMode='stores';
+      regionOverlays.forEach(o=>o.setMap(null));
       map.setLevel(3);
-      // 판매점을 상단에, 카드가 중앙에 오도록 오프셋
-      const _off = 0.012;
-      map.setCenter(new kakao.maps.LatLng(lat - _off, lng));
+      map.setCenter(new kakao.maps.LatLng(lat, lng));
       scheduleRender(200);
       setTimeout(()=>showStoreInfo(name,region,w1,w2,level,lat,lng,addr),400);
     },350);
