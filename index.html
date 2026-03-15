@@ -959,7 +959,7 @@ function zoomToRegion(name, lat, lng, count, top, level){
   var _isMob = window.innerWidth < 768;
   var _lv = _isMob ? 10 : 9;
   var _dpp = {9:0.000553, 10:0.001106}[_lv] || 0.000553;
-  var _ratio = _isMob ? 0.10 : 0.15;
+  var _ratio = _isMob ? 0.12 : 0.30;
   var _off = _dpp * _mapH * _ratio;
   var _centerLat = clat - _off;
   map.setCenter(new kakao.maps.LatLng(_centerLat, clng));
@@ -1352,7 +1352,7 @@ function zoomToRegionStores(name, lat, lng){
     var mapH = mapEl ? mapEl.offsetHeight : 400;
     var isMob = window.innerWidth < 768;
     var dpp = 0.0000172; // lv3
-    var ratio = isMob ? 0.10 : 0.15;
+    var ratio = isMob ? 0.12 : 0.30;
     var off = dpp * mapH * ratio;
     map.setCenter(new kakao.maps.LatLng(clat - off, clng));
   })();
@@ -1526,7 +1526,7 @@ function showStoreInfo(name,region,win1,win2,level,lat,lng,addr){
     var dpp = degPerPx[lv] || 0.0000172;
     // 지도 높이의 20% 만큼 중심을 아래로 → 마커가 상단 30% 지점에
     var isMob = window.innerWidth < 768;
-    var ratio = isMob ? 0.10 : 0.15;
+    var ratio = isMob ? 0.12 : 0.30;
     var off = dpp * mapH * ratio;
     map.setCenter(new kakao.maps.LatLng(lat - off, lng));
   })();
@@ -1577,11 +1577,12 @@ function updateSidePanelByView(){
   // 유효한 행정동 여부 체크 (영문/숫자 단독, 아파트 동번호 제외)
   function isValidDong(d){
     if(!d) return false;
-    if(/^[A-Za-z]{1,2}동$/.test(d)) return false; // A동, B동
-    if(/^\d{3,}동$/.test(d)) return false;          // 816동, 109동
-    if(/\d+-[A-Za-z]/.test(d)) return false;        // 101-A호
-    if(/\d+호\(/.test(d)) return false;             // 102호(
-    if(!/.+(동|읍|면|가|리)$/.test(d)) return false; // 행정동 패턴 아님
+    if(d.length < 3) return false;           // 2글자 이하(나동, A동 등) 제외
+    if(/^[A-Za-z]/.test(d)) return false;   // 영문 시작 제외
+    if(/^\d/.test(d)) return false;          // 숫자 시작 제외
+    if(/\d+동$/.test(d)) return false;       // 숫자+동(116동, 3동) 제외
+    if(/\d+호/.test(d)) return false;        // 호수 포함 제외
+    if(!/^[가-힣]+(동|읍|면|가|리)$/.test(d)) return false; // 한글+행정단위 패턴만 허용
     return true;
   }
   const validDong = isValidDong(dong) ? dong : '';
