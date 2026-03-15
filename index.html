@@ -1014,18 +1014,10 @@ function _renderStores(){
     const inner = `<div style="font-size:${cfs}px;opacity:0.9">${label}</div><div style="font-size:${cfs+2}px;font-weight:900">${count}회</div>`;
     const ov = new kakao.maps.CustomOverlay({
       position: new kakao.maps.LatLng(lat, lng),
-      content: `<div onclick="${onclick}"
-        style="background:${c.bg};border:2px solid ${c.bd};border-radius:50%;
-        width:${csz}px;height:${csz}px;cursor:pointer;
-        display:flex;flex-direction:column;align-items:center;justify-content:center;
-        font-family:'Noto Sans KR',sans-serif;font-weight:900;color:${c.tx};
-        box-shadow:0 3px 10px rgba(0,0,0,0.3);transition:transform 0.12s;line-height:1.2"
-        onmouseover="this.style.transform='scale(1.1)'"
-        onmouseout="this.style.transform='scale(1)'">${inner}</div>`,
+      content: `<div onclick="${onclick}" style="background:${c.bg};border:2px solid ${c.bd};border-radius:50%;width:${csz}px;height:${csz}px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Noto Sans KR',sans-serif;font-weight:900;color:${c.tx};box-shadow:0 3px 10px rgba(0,0,0,0.3);transition:transform 0.12s;line-height:1.2" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">${inner}</div>`,
       yAnchor: 0.5
     });
-    ov.setMap(map);
-    storeOverlays.push(ov);
+    ov.setMap(map); storeOverlays.push(ov);
   }
 
   function mkOv(label, count, lat, lng, lvl, onclick){
@@ -1033,80 +1025,70 @@ function _renderStores(){
     const inner = `<div style="font-size:${fs-1}px;opacity:0.85">${label}</div><div style="font-size:${fs+1}px;font-weight:900">${count}회</div>`;
     const ov = new kakao.maps.CustomOverlay({
       position: new kakao.maps.LatLng(lat, lng),
-      content: `<div onclick="${onclick}"
-        style="background:${c.bg};border:1.5px solid ${c.bd};border-radius:${sz/2+4}px;
-        padding:${py}px ${px}px;cursor:pointer;white-space:nowrap;
-        font-family:'Noto Sans KR',sans-serif;font-weight:900;color:${c.tx};
-        box-shadow:0 2px 6px rgba(0,0,0,0.3);transition:transform 0.12s;
-        text-align:center;line-height:1.4"
-        onmouseover="this.style.transform='scale(1.08)'"
-        onmouseout="this.style.transform='scale(1)'">${inner}</div>`,
+      content: `<div onclick="${onclick}" style="background:${c.bg};border:1.5px solid ${c.bd};border-radius:${sz/2+4}px;padding:${py}px ${px}px;cursor:pointer;white-space:nowrap;font-family:'Noto Sans KR',sans-serif;font-weight:900;color:${c.tx};box-shadow:0 2px 6px rgba(0,0,0,0.3);transition:transform 0.12s;text-align:center;line-height:1.4" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'">${inner}</div>`,
       yAnchor: 0.5
     });
-    ov.setMap(map);
-    storeOverlays.push(ov);
+    ov.setMap(map); storeOverlays.push(ov);
   }
 
-  // 레벨별 표시 거리 임계값 (PC/모바일 분리)
-  const isMob = window.innerWidth < 768;
-  const threshPC  = {9:4.0, 8:2.5, 7:1.8, 6:1.2, 5:0.8, 4:0.5, 3:0.4, 2:0.2,  1:0.08};
-  const threshMob = {9:2.0, 8:1.2, 7:0.9, 6:0.6, 5:0.4, 4:0.5, 3:0.4, 2:0.15, 1:0.06};
-  const thresh = (isMob ? threshMob : threshPC)[lv] || 1.0;
+  // 중심에서 거리 계산
+  function dist(lat, lng){ return Math.abs(lat-cLat) + Math.abs(lng-cLng); }
 
-  function inRange(lat, lng){ return Math.abs(lat-cLat)+Math.abs(lng-cLng) <= thresh; }
+  // 가장 가까운 N개 뽑기
+  function nearest(arr, latKey, lngKey, n){
+    return arr.map(s=>({s, d:dist(s[latKey], s[lngKey])}))
+              .sort((a,b)=>a.d-b.d)
+              .slice(0, n)
+              .map(x=>x.s);
+  }
 
   if(lv >= 5){
-    // lv5~9: 시 버블
-    if(!window._guSiCache){
+    // 시 버블: 가까운 시 20개
+    if(!window._guSiCache)
       window._guSiCache = GU_STORES.filter(s=>s.gu.endsWith('시')||s.gu==='세종시');
-    }
-    window._guSiCache.forEach(s=>{
-      if(!inRange(s.lat, s.lng)) return;
+    nearest(window._guSiCache, 'lat', 'lng', 20).forEach(s=>{
       mkOvCircle(s.gu.replace(/시$/,''), s.w1, s.lat, s.lng, s.lv,
         `zoomToGu('${esc(s.sido)}','${esc(s.gu)}',${s.lat},${s.lng})`);
     });
+    // 광역시: 가까운 것 포함
     const METRO_SET = new Set(['서울','부산','대구','인천','광주','대전','울산']);
-    REGIONS.filter(r=>METRO_SET.has(r.name)).forEach(r=>{
+    nearest(REGIONS.filter(r=>METRO_SET.has(r.name)), 'lat', 'lng', 5).forEach(r=>{
       const gov=GOV_CENTERS[r.name];
       const lat=gov?gov.lat:r.lat, lng=gov?gov.lng:r.lng;
-      if(!inRange(lat,lng)) return;
       mkOvCircle(r.name, r.count, lat, lng, r.level,
         `zoomToRegionStores('${esc(r.name)}',${lat},${lng})`);
     });
 
   } else if(lv === 3 || lv === 4){
-    // lv3~4: 구/군 버블 — 가장 가까운 sido 전체 + 인접
+    // 구/군 버블: 가장 가까운 sido 전체 + 인접 30개
     const nearSido = GU2_STORES.reduce((best,s)=>{
-      const d=Math.abs(s.lat-cLat)+Math.abs(s.lng-cLng);
+      const d=dist(s.lat,s.lng);
       return(!best||d<best.d)?{sido:s.sido,d}:best;
     },null)?.sido||'';
-    GU2_STORES.filter(s=>{
-      const d=Math.abs(s.lat-cLat)+Math.abs(s.lng-cLng);
-      return s.sido===nearSido || d<0.3;
-    }).forEach(s=>{
+    const sameSido = GU2_STORES.filter(s=>s.sido===nearSido);
+    const others = nearest(GU2_STORES.filter(s=>s.sido!==nearSido), 'lat','lng', 10);
+    [...sameSido, ...others].forEach(s=>{
       mkOv(s.gu.replace(/시$/,''), s.w1, s.lat, s.lng, s.lv,
         `zoomToGu('${esc(s.sido)}','${esc(s.gu)}',${s.lat},${s.lng})`);
     });
 
   } else if(lv === 2){
-    // lv2: 동 버블
-    DONG_STORES.filter(s=>inRange(s.lat,s.lng)).slice(0,80).forEach(s=>{
+    // 동 버블: 가까운 50개
+    nearest(DONG_STORES, 'lat','lng', 50).forEach(s=>{
       mkOv(s.dong!==s.gu?s.dong:s.gu, s.w1, s.lat, s.lng, s.lv,
         `zoomToDong(${s.lat},${s.lng})`);
     });
 
   } else if(lv === 1){
-    // lv1: 판매점 마커
-    W1_STORES.filter(s=>inRange(s.t,s.g)).slice(0,80).forEach(s=>{
+    // 판매점 마커: 가까운 50개
+    nearest(W1_STORES, 't','g', 50).forEach(s=>{
       const c=C[s.lv]||C.mild;
       const ov=new kakao.maps.CustomOverlay({
         position:new kakao.maps.LatLng(s.t,s.g),
-        content:`<div class="marker-wrap" onclick="showStoreInfo('${esc(s.n)}','${s.sido} ${s.gu}',${s.w},${s.w2},'${s.lv}',${s.t},${s.g},'${esc(s.a)}')">
-          <div class="marker-bubble ${s.lv}">🏆 ${s.n} <small>${s.w}회</small></div></div>`,
+        content:`<div class="marker-wrap" onclick="showStoreInfo('${esc(s.n)}','${s.sido} ${s.gu}',${s.w},${s.w2},'${s.lv}',${s.t},${s.g},'${esc(s.a)}')"><div class="marker-bubble ${s.lv}">🏆 ${s.n} <small>${s.w}회</small></div></div>`,
         yAnchor:1
       });
-      ov.setMap(map);
-      storeOverlays.push(ov);
+      ov.setMap(map); storeOverlays.push(ov);
     });
   }
   updateMapHint(lv);
