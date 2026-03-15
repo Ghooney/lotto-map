@@ -947,43 +947,6 @@ function goToRankTab(region){
 }
 
 
-// ── 구청/주민센터 좌표 자동 보정 (카카오 Places API) ──
-function geocodeOffices(){
-  if(!window.kakao || !kakao.maps || !kakao.maps.services) return;
-  const ps = new kakao.maps.services.Places();
-  const CACHE_KEY = 'lotto_office_coords_v1';
-
-  // 로컬스토리지 캐시 확인
-  let cache = {};
-  try { cache = JSON.parse(localStorage.getItem(CACHE_KEY)||'{}'); } catch(e){}
-
-  // GU2_STORES 구청 좌표 보정
-  function fixGuStores(idx){
-    if(idx >= GU2_STORES.length){ window._guSiCache=null; return; }
-    const s = GU2_STORES[idx];
-    const key = s.sido+'_'+s.gu;
-    if(cache[key]){
-      s.lat = cache[key][0]; s.lng = cache[key][1];
-      fixGuStores(idx+1); return;
-    }
-    const query = s.gu.endsWith('군') ? s.gu+'청' : s.gu+'청';
-    ps.keywordSearch(query, function(data, status){
-      if(status===kakao.maps.services.Status.OK && data.length>0){
-        // 같은 sido 안에서 가장 가까운 결과
-        const res = data[0];
-        s.lat = parseFloat(res.y);
-        s.lng = parseFloat(res.x);
-        cache[key] = [s.lat, s.lng];
-        try{ localStorage.setItem(CACHE_KEY, JSON.stringify(cache)); }catch(e){}
-      }
-      setTimeout(()=>fixGuStores(idx+1), 50);
-    }, {location: new kakao.maps.LatLng(s.lat, s.lng), radius: 30000, size:1});
-  }
-
-  // GU2_STORES 구청 좌표 보정 시작
-  fixGuStores(0);
-}
-
 function initMap(){
   map=new kakao.maps.Map(document.getElementById('kakaoMap'),{center:new kakao.maps.LatLng(36.5,127.9),level:13});
   showRegionBubbles();
@@ -992,7 +955,6 @@ function initMap(){
     if(mapMode==='stores') scheduleRender();
   });
   renderSidePanel(TOP_STORES,'역대 명당 TOP 10');
-  setTimeout(geocodeOffices, 2000);
 }
 
 let _renderTimer = null;
