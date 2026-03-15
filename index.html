@@ -971,26 +971,27 @@ function scheduleRender(delay){
 
 function onZoomChanged(){
   const lv = map.getLevel();
-  const isMobile = window.innerWidth < 768;
-  const storeThreshold = (window.innerWidth < 768) ? 7 : 9;
-
   updateMapHint(lv);
 
-  if(lv <= storeThreshold && mapMode === 'region'){
-    mapMode = 'stores';
-    regionOverlays.forEach(o=>o.setMap(null));
-    storeOverlays.forEach(o=>o.setMap(null)); storeOverlays=[];
+  if(lv <= 9){
+    // stores 모드
+    if(mapMode === 'region'){
+      mapMode = 'stores';
+      regionOverlays.forEach(o=>o.setMap(null));
+      storeOverlays.forEach(o=>o.setMap(null)); storeOverlays=[];
+    }
     scheduleRender();
-  } else if(lv > storeThreshold && mapMode === 'stores'){
-    mapMode = 'region';
-    storeOverlays.forEach(o=>o.setMap(null)); storeOverlays=[];
-    regionOverlays.forEach(o=>o.setMap(map));
-    closeInfo();
-    document.getElementById('mapTitle').textContent='📍 전국 지역별 당첨 현황 — 지역을 클릭해보세요!';
-    document.getElementById('zoomHintText').textContent='지역 버블을 클릭하면 해당 지역 명당을 볼 수 있어요';
-    renderSidePanel(TOP_STORES,'역대 명당 TOP 10');
-  } else if(mapMode === 'stores'){
-    scheduleRender();
+  } else {
+    // region 모드 (lv10 이상)
+    if(mapMode === 'stores'){
+      mapMode = 'region';
+      storeOverlays.forEach(o=>o.setMap(null)); storeOverlays=[];
+      regionOverlays.forEach(o=>o.setMap(map));
+      closeInfo();
+      document.getElementById('mapTitle').textContent='📍 전국 지역별 당첨 현황 — 지역을 클릭해보세요!';
+      document.getElementById('zoomHintText').textContent='지역 버블을 클릭하면 해당 지역 명당을 볼 수 있어요';
+      renderSidePanel(TOP_STORES,'역대 명당 TOP 10');
+    }
   }
 }
 
@@ -1033,6 +1034,7 @@ function _renderStores(){
   const px = Math.max(7, Math.round(sz*0.22));
 
   function mkOvCircle(label, count, lat, lng, lvl, onclick){
+    console.log('[MAP] mkOvCircle: '+label+' cnt='+count+' lat='+lat+' lng='+lng);
     const c = C[lvl] || C.mild;
     const csz = {9:52,8:56,7:52,6:56,5:52}[lv] || 52;
     const cfs = Math.max(10, Math.round(csz*0.22));
@@ -1061,10 +1063,12 @@ function _renderStores(){
 
   // 가장 가까운 N개 뽑기
   function nearest(arr, latKey, lngKey, n){
-    return arr.map(s=>({s, d:dist(s[latKey], s[lngKey])}))
+    const result = arr.map(s=>({s, d:dist(s[latKey], s[lngKey])}))
               .sort((a,b)=>a.d-b.d)
               .slice(0, n)
               .map(x=>x.s);
+    console.log('[MAP] nearest arr='+arr.length+' n='+n+' result='+result.length);
+    return result;
   }
 
   if(lv >= 5){
