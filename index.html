@@ -597,6 +597,33 @@
 
   /* 모바일에서는 pc-stat-bar 숨김 */
   .pc-stat-bar { display:none; }
+
+    /* 황금색 커스텀 스크롤바 (모바일 only) */
+    #customScrollbar {
+      display: none;
+      position: fixed;
+      right: 4px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 6px;
+      height: 60vh;
+      background: rgba(255,184,0,0.15);
+      border-radius: 4px;
+      z-index: 600;
+      cursor: pointer;
+    }
+    #customScrollThumb {
+      position: absolute;
+      left: 0; right: 0;
+      background: linear-gradient(180deg, #FFB800, #FF8C00);
+      border-radius: 4px;
+      min-height: 40px;
+      cursor: grab;
+      box-shadow: 0 2px 8px rgba(255,140,0,0.4);
+      transition: background 0.1s;
+    }
+    #customScrollThumb:active { cursor: grabbing; background: linear-gradient(180deg,#FFD700,#FFA500); }
+    @media(min-width:768px){ #customScrollbar { display:none !important; } }
 </style>
 </head>
 <body>
@@ -624,7 +651,6 @@
     <button class="tab-btn" onclick="switchTab('numbers',this)">📈 기록</button>
   </div>
 </header>
-
 <main>
 
   <!-- MAP TAB -->
@@ -644,7 +670,15 @@
       <div class="map-wrap" id="mapWrap">
         <div class="map-title" id="mapTitle">📍 전국 지역별 1등 당첨 현황 — 지역을 클릭해보세요!</div>
         <div style="position:relative">
+
           <div id="kakaoMap"></div>
+          <!-- 스와이프 가이드 -->
+          <div style="position:absolute;bottom:0;left:0;right:0;height:36px;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:8;">
+            <div style="background:rgba(0,0,0,0.35);border-radius:12px;padding:5px 18px;display:flex;flex-direction:column;align-items:center;gap:3px">
+              <div style="width:32px;height:3px;background:rgba(255,255,255,0.7);border-radius:2px"></div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.85);font-weight:600;letter-spacing:0.3px;font-family:'Noto Sans KR',sans-serif">스크롤</div>
+            </div>
+          </div>
           <button class="my-location-btn" onclick="goToMyLocation()" title="현재 위치로 이동" style="width:auto;border-radius:20px;padding:0 14px;font-size:12px;font-weight:700;white-space:nowrap">📍 내 위치</button>
           <div id="mapLoadingMsg">🔄 데이터 로딩 중...</div>
         </div>
@@ -1026,9 +1060,9 @@ function _renderStores(){
   console.log('[RENDER] lv='+lv+' center=('+cLat.toFixed(3)+','+cLng.toFixed(3)+')');
 
   // 레벨별 통일 색상
-  const COLOR_SI   = '#D94F00';  // 시  - 딥오렌지 (진한)
-  const COLOR_GU   = '#E07B00';  // 구  - 미디엄오렌지
-  const COLOR_DONG = '#A07800';  // 동  - 브라운골드
+  const COLOR_SI   = '#CC2200';  // 시  - 빨강
+  const COLOR_GU   = '#E07B00';  // 구  - 주황
+  const COLOR_DONG = '#B8960A';  // 동  - 진한 노란색
   const COLOR_STORE= '#B8860B';  // 판매점 - 다크골드 (marker-bubble CSS로 처리)
 
   function dist(lat,lng){ return Math.abs(lat-cLat)+Math.abs(lng-cLng); }
@@ -1716,8 +1750,11 @@ function scrollToMap(){
   const wrapEl = document.getElementById('mapWrap') || document.getElementById('kakaoMap');
   if(wrapEl){
     const headerH = document.querySelector('header')?.offsetHeight || 120;
-    const top = wrapEl.getBoundingClientRect().top + window.scrollY - headerH - 8;
-    window.scrollTo({top: Math.max(0, top), behavior:'smooth'});
+    const wrapH = wrapEl.offsetHeight || 400;
+    const wrapTop = wrapEl.getBoundingClientRect().top + window.scrollY;
+    // 지도 중간 지점으로 스크롤 → 지도 하단 + 인근 명당 리스트 함께 노출
+    const scrollTarget = wrapTop + wrapH * 0.45 - window.innerHeight * 0.5;
+    window.scrollTo({top: Math.max(wrapTop - headerH, scrollTarget), behavior:'smooth'});
   }
 }
 
@@ -1982,6 +2019,88 @@ window.onload=()=>{initMap();};
     if(now - lastTap < 300) e.preventDefault();
     lastTap = now;
   }, {passive: false});
+
+  // ── 황금색 커스텀 스크롤바 ──
+  (function(){
+    const isMob = ()=> window.innerWidth < 768;
+
+    function initScrollbar(){
+      const bar = document.getElementById('customScrollbar');
+      const thumb = document.getElementById('customScrollThumb');
+      if(!bar || !thumb) return;
+
+      function update(){
+        if(!isMob()){ bar.style.display='none'; return; }
+        bar.style.display='block';
+        const scrollH = document.documentElement.scrollHeight;
+        const clientH = window.innerHeight;
+        const scrollTop = window.scrollY;
+        const barH = bar.offsetHeight;
+        // 썸 높이: 페이지 비율
+        const ratio = clientH / scrollH;
+        const thumbH = Math.max(40, barH * ratio);
+        thumb.style.height = thumbH + 'px';
+        // 썸 위치
+        const maxScroll = scrollH - clientH;
+        const thumbMax = barH - thumbH;
+        const pos = maxScroll > 0 ? (scrollTop / maxScroll) * thumbMax : 0;
+        thumb.style.top = pos + 'px';
+      }
+
+      // 드래그
+      let dragging = false, startY = 0, startScroll = 0;
+      thumb.addEventListener('touchstart', e=>{
+        dragging = true;
+        startY = e.touches[0].clientY;
+        startScroll = window.scrollY;
+        e.preventDefault();
+      }, {passive:false});
+      document.addEventListener('touchmove', e=>{
+        if(!dragging) return;
+        const dy = e.touches[0].clientY - startY;
+        const bar = document.getElementById('customScrollbar');
+        const thumb = document.getElementById('customScrollThumb');
+        const barH = bar.offsetHeight;
+        const thumbH = thumb.offsetHeight;
+        const maxThumb = barH - thumbH;
+        const scrollH = document.documentElement.scrollHeight;
+        const clientH = window.innerHeight;
+        const maxScroll = scrollH - clientH;
+        const scrollDelta = maxThumb > 0 ? (dy / maxThumb) * maxScroll : 0;
+        window.scrollTo({top: Math.max(0, Math.min(maxScroll, startScroll + scrollDelta))});
+        e.preventDefault();
+      }, {passive:false});
+      document.addEventListener('touchend', ()=>{ dragging = false; });
+
+      // 트랙 클릭 시 해당 위치로 이동
+      bar.addEventListener('click', e=>{
+        if(e.target === thumb) return;
+        const rect = bar.getBoundingClientRect();
+        const clickY = e.clientY - rect.top;
+        const barH = bar.offsetHeight;
+        const scrollH = document.documentElement.scrollHeight;
+        const clientH = window.innerHeight;
+        const maxScroll = scrollH - clientH;
+        window.scrollTo({top: (clickY / barH) * maxScroll, behavior:'smooth'});
+      });
+
+      window.addEventListener('scroll', update, {passive:true});
+      window.addEventListener('resize', update);
+      update();
+    }
+
+    if(document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', initScrollbar);
+    } else {
+      setTimeout(initScrollbar, 500);
+    }
+  })();
+
 </script>
+
+  <!-- 황금색 커스텀 스크롤바 (모바일) -->
+  <div id="customScrollbar">
+    <div id="customScrollThumb"></div>
+  </div>
 </body>
 </html>
