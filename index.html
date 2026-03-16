@@ -191,6 +191,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   .legend-item { display:flex; align-items:center; gap:5px; font-size:11px; color:#666; }
   .legend-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
   .legend-item { display:flex; align-items:center; gap:4px; font-size:9px; color:#555; }
+  /* 모바일: 모바일 범례 보임, PC 범례 숨김 */
+  .map-legend-pc     { display:none; }
+  .map-legend-mobile { display:flex; }
 
   /* 마커 */
   .marker-wrap   { position:relative; display:flex; flex-direction:column; align-items:center; }
@@ -320,6 +323,13 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     #mapWrap { margin-bottom:0; position:sticky; top:80px; }
     /* kakaoMap: 범례+힌트가 보이도록 충분히 여백 확보 */
     #kakaoMap { height:calc(100vh - 420px); min-height:360px; max-height:580px; }
+    /* PC: 줌힌트 한 줄에 범례 나란히, 모바일 범례 숨김 */
+    .zoom-hint { justify-content:space-between; }
+    .map-legend-pc     { display:flex; flex-shrink:0; margin:0; padding:0; gap:10px; }
+    .map-legend-mobile { display:none; }
+    /* 사이드패널: mapWrap 높이에 JS로 맞추되, 넘치면 스크롤 */
+    .map-side-panel { display:flex; flex-direction:column; gap:12px;
+      overflow-y:auto; padding-right:14px; padding-bottom:0; }
     /* 명당/최신/NEW 탭 PC 레이아웃 */
     .rank-grid { max-width:960px; margin:0 auto; }
     #recentGrid { max-width:960px; margin:0 auto; }
@@ -789,17 +799,23 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <button class="my-location-btn" onclick="goToMyLocation()" title="현재 위치로 이동" style="width:auto;border-radius:20px;padding:0 14px;font-size:12px;font-weight:700;white-space:nowrap">📍 내 위치</button>
           <div id="mapLoadingMsg">🔄 데이터 로딩 중...</div>
         </div>
-        <div class="zoom-hint" style="justify-content:space-between;flex-wrap:wrap;gap:6px">
-          <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
-            <span class="zoom-hint-icon">🔍</span>
-            <span id="zoomHintText" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">지역 버블을 클릭하면 해당 지역 명당을 볼 수 있어요 · 줌인하면 개별 명당 마커가 나타나요</span>
-          </div>
-          <div class="map-legend" style="margin:0;padding:0;flex-shrink:0">
+        <div class="zoom-hint">
+          <span class="zoom-hint-icon">🔍</span>
+          <span id="zoomHintText">지역 버블을 클릭하면 해당 지역 명당을 볼 수 있어요 · 줌인하면 개별 명당 마커가 나타나요</span>
+          <!-- PC 전용 인라인 범례 -->
+          <div class="map-legend map-legend-pc">
             <div class="legend-item"><div class="legend-dot" style="background:#CC0000"></div>최상위</div>
             <div class="legend-item"><div class="legend-dot" style="background:#D94F00"></div>상위</div>
             <div class="legend-item"><div class="legend-dot" style="background:#E07B00"></div>중위</div>
             <div class="legend-item"><div class="legend-dot" style="background:#9E7A2E"></div>일반</div>
           </div>
+        </div>
+        <!-- 모바일 전용 범례 (힌트 아래 중앙) -->
+        <div class="map-legend map-legend-mobile">
+          <div class="legend-item"><div class="legend-dot" style="background:#CC0000"></div>최상위 명당</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#D94F00"></div>상위 명당</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#E07B00"></div>중위 명당</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#9E7A2E"></div>일반 명당</div>
         </div>
       </div>
 
@@ -1580,9 +1596,15 @@ function syncSidePanelHeight(){
   if(window.innerWidth < 1024) return;
   var wrap  = document.getElementById('mapWrap');
   var panel = document.querySelector('.map-side-panel');
+  var grid  = document.querySelector('#tab-map .map-tab-grid');
   if(!wrap || !panel) return;
   var h = wrap.getBoundingClientRect().height;
-  if(h > 0) panel.style.height = h + 'px';
+  if(h > 0){
+    panel.style.height  = h + 'px';
+    panel.style.maxHeight = h + 'px';
+    // grid 높이도 mapWrap에 맞춰 빈 공간 제거
+    if(grid) grid.style.height = h + 'px';
+  }
 }
 window.addEventListener('resize', syncSidePanelHeight);
 
