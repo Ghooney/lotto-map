@@ -8,20 +8,16 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-WZHBTKG3');</script>
 <!-- End Google Tag Manager -->
-
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-46KEH66LR5"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-
   gtag('config', 'G-46KEH66LR5');
 </script>
-
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1437931285468728"
      crossorigin="anonymous"></script>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>로또명당지도</title>
@@ -321,8 +317,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     /* 지도탭 - 지도 크게 + 사이드패널 오른쪽 */
     .map-tab-grid { display:grid; grid-template-columns:1fr 320px; gap:20px; align-items:start; }
 
-    /* kakaoMap: 화면 높이에서 헤더/통계/힌트 빼고 최대한 크게 */
-    #kakaoMap { height:calc(100vh - 280px); min-height:480px; max-height:800px; }
+    /* kakaoMap: 범례가 항상 보이도록 높이 제한 */
+    #kakaoMap { height:calc(100vh - 380px); min-height:380px; max-height:620px; }
     /* 명당/최신/NEW 탭 PC 레이아웃 */
     .rank-grid { max-width:960px; margin:0 auto; }
     #recentGrid { max-width:960px; margin:0 auto; }
@@ -339,7 +335,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
     /* 사이드패널 지도와 같은 높이로 */
     .map-side-panel { display:flex; flex-direction:column; gap:12px;
-      max-height:calc(100vh - 280px); overflow-y:auto;
+      max-height:calc(100vh - 380px); min-height:380px; overflow-y:auto;
       padding-right:14px; padding-bottom:40px; }
     .map-side-panel::-webkit-scrollbar { width:4px; }
     .map-side-panel::-webkit-scrollbar-track { background:transparent; border-radius:4px; }
@@ -660,11 +656,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     /* 3. stats-row 숨김 */
     .stats-row { display:none !important; }
 
-    /* 4. 지도 높이 최대화 */
-    #kakaoMap { height:calc(100vh - 212px) !important; min-height:500px; max-height:none; }
+    /* 4. 지도 높이 - 범례 보이도록 */
+    #kakaoMap { height:calc(100vh - 310px) !important; min-height:380px; max-height:680px; }
 
     /* 5. 사이드패널 */
-    .map-side-panel { max-height:calc(100vh - 164px) !important; overflow-y:auto; padding-right:14px; padding-bottom:40px; }
+    .map-side-panel { max-height:calc(100vh - 310px) !important; overflow-y:auto; padding-right:14px; padding-bottom:40px; }
 
     /* 6. 하단바 */
     .bottom-bar { position:fixed !important; bottom:0; left:0; right:0;
@@ -720,7 +716,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WZHBTKG3"
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->
-
 <div class="ambient1"></div>
 <div class="ambient2"></div>
 
@@ -729,7 +724,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div class="logo-row">
     <div style="display:flex;align-items:center;gap:8px;cursor:pointer;flex-shrink:0;min-width:0" onclick="goHome()">
       <div style="display:grid;grid-template-columns:44px 1fr;grid-template-rows:auto auto;align-items:center;gap:0 8px;">
-        <div class="logo-icon" style="grid-row:1/3;background:none;box-shadow:none"><svg viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg" width="52" height="52">
+        <div class="logo-icon" style="grid-row:1/3;background:none;box-shadow:none"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="52" height="52">
   <defs>
     <radialGradient id="lg1" cx="35%" cy="30%" r="70%">
       <stop offset="0%"   stop-color="#FFE566"/>
@@ -748,14 +743,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <stop offset="100%" stop-color="#FF8C00"/>
     </radialGradient>
   </defs>
-  <!-- 네잎클로버: 원 4개 그라데이션 겹침 -->
   <circle cx="50" cy="26" r="22" fill="url(#lg1)"/>
   <circle cx="74" cy="47" r="22" fill="url(#lg2)"/>
   <circle cx="26" cy="47" r="22" fill="url(#lg3)"/>
   <circle cx="50" cy="68" r="22" fill="url(#lg4)"/>
-  <!-- 줄기 -->
-  <path d="M50 82 Q50 96 50 103" stroke="#FF8C00" stroke-width="4.5" fill="none" stroke-linecap="round"/>
-  <path d="M50 97 Q43 91 37 95"  stroke="#FF8C00" stroke-width="3" fill="none" stroke-linecap="round"/>
 </svg></div>
         <div class="logo-text" style="grid-column:2">로또명당지도</div>
         <div class="logo-sub" style="grid-column:2;padding-left:1px">LOTTO LUCKY MAP</div>
