@@ -318,8 +318,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     .map-tab-grid { display:grid; grid-template-columns:1fr 320px; gap:20px; align-items:start; }
     /* 지도 영역 sticky 고정 */
     #mapWrap { margin-bottom:0; position:sticky; top:80px; }
-    /* kakaoMap: 범례가 힌트 옆으로 옮겨져 높이 여유 생김 */
-    #kakaoMap { height:calc(100vh - 320px); min-height:400px; max-height:680px; }
+    /* kakaoMap: 범례+힌트가 보이도록 충분히 여백 확보 */
+    #kakaoMap { height:calc(100vh - 420px); min-height:360px; max-height:580px; }
     /* 명당/최신/NEW 탭 PC 레이아웃 */
     .rank-grid { max-width:960px; margin:0 auto; }
     #recentGrid { max-width:960px; margin:0 auto; }
@@ -656,8 +656,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     /* 3. stats-row 숨김 */
     .stats-row { display:none !important; }
 
-    /* 4. 지도 높이 - 범례가 힌트 옆으로 이동해 여유 생김 */
-    #kakaoMap { height:calc(100vh - 230px) !important; min-height:400px; max-height:780px; }
+    /* 4. 지도 높이 - 범례+힌트 한줄 포함해서 여백 확보 */
+    #kakaoMap { height:calc(100vh - 330px) !important; min-height:360px; max-height:680px; }
     #mapWrap { top:68px; }
 
     /* 5. 사이드패널 */
@@ -1585,6 +1585,19 @@ function syncSidePanelHeight(){
   if(h > 0) panel.style.height = h + 'px';
 }
 window.addEventListener('resize', syncSidePanelHeight);
+
+// PC에서 mapWrap 영역 휠 스크롤 차단 (지도 밖 흰 공간 포함)
+document.addEventListener('DOMContentLoaded', function(){
+  var wrap = document.getElementById('mapWrap');
+  if(!wrap) return;
+  wrap.addEventListener('wheel', function(e){
+    // 카카오맵 내부는 허용 (지도 조작)
+    var mapEl = document.getElementById('kakaoMap');
+    if(mapEl && mapEl.contains(e.target)) return;
+    // map-wrap 안의 다른 영역(힌트, 범례 등)에서는 스크롤 차단
+    e.preventDefault();
+  }, { passive: false });
+});
 
 // 지도 정중앙에 카드 표시 (모바일/PC 공통)
 function showMapCard(html){
