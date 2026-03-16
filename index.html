@@ -318,14 +318,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     main   { padding:20px 48px 0; }
 
     /* 지도탭 - 지도 크게 + 사이드패널 오른쪽 */
-    .map-tab-grid {
-      display: grid;
-      grid-template-columns: 1fr 320px;
-      gap: 20px;
-      align-items: start;
-      /* 그리드가 mapWrap 높이를 넘지 않도록 */
-      overflow: hidden;
-    }
+    .map-tab-grid { display:grid; grid-template-columns:1fr 320px; gap:20px; align-items:start; overflow:hidden; }
     /* 지도 영역 sticky 고정 */
     #mapWrap { margin-bottom:0; position:sticky; top:80px; }
     /* kakaoMap: 범례+힌트가 보이도록 충분히 여백 확보 */
@@ -334,31 +327,25 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     .zoom-hint { justify-content:space-between; }
     .map-legend-pc     { display:flex; flex-shrink:0; margin:0; padding:0; gap:10px; }
     .map-legend-mobile { display:none; }
-    /* 사이드패널: mapWrap 높이에 JS로 맞추되, 넘치면 스크롤 */
+    /* 사이드패널: JS가 높이 주입, 넘치면 스크롤 */
     .map-side-panel { display:flex; flex-direction:column; gap:12px;
       overflow-y:auto; padding-right:14px; padding-bottom:0; }
+    .map-side-panel::-webkit-scrollbar { width:4px; }
+    .map-side-panel::-webkit-scrollbar-track { background:transparent; border-radius:4px; }
+    .map-side-panel::-webkit-scrollbar-thumb { background:rgba(255,184,0,0.4); border-radius:4px; }
+    .map-side-panel::-webkit-scrollbar-thumb:hover { background:rgba(255,184,0,0.7); }
     /* 명당/최신/NEW 탭 PC 레이아웃 */
     .rank-grid { max-width:960px; margin:0 auto; }
     #recentGrid { max-width:960px; margin:0 auto; }
     #newStoresGrid { max-width:960px; margin:0 auto; grid-template-columns:repeat(3,1fr); }
     .region-filter { max-width:960px; margin:0 auto 14px; }
     .tab-desc { max-width:960px; margin:0 auto 12px; }
-
     /* 통계 카드 더 컴팩트하게 */
     .stats-row { margin-bottom:12px; }
     .stat-card { padding:10px 8px; }
     .stat-icon { font-size:20px; margin-bottom:4px; }
     .stat-value { font-size:20px; }
     .stat-label { font-size:11px; }
-
-    /* 사이드패널 높이는 JS syncSidePanelHeight()가 동적으로 맞춤 */
-    .map-side-panel { display:flex; flex-direction:column; gap:12px;
-      overflow-y:auto; padding-right:14px; padding-bottom:16px; }
-    .map-side-panel::-webkit-scrollbar { width:4px; }
-    .map-side-panel::-webkit-scrollbar-track { background:transparent; border-radius:4px; }
-    .map-side-panel::-webkit-scrollbar-thumb { background:rgba(255,184,0,0.4); border-radius:4px; }
-    .map-side-panel::-webkit-scrollbar-thumb:hover { background:rgba(255,184,0,0.7); }
-
     /* 하단 버튼 PC에서는 고정 안하고 인라인으로 */
     .bottom-bar { position:static; padding:12px 0 20px; background:none; box-shadow:none; }
     .bottom-bar-inner { max-width:100%; }
@@ -678,7 +665,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     #mapWrap { top:68px; }
 
     /* 5. 사이드패널 */
-    .map-side-panel { align-self:stretch; overflow-y:auto !important; padding-right:14px; padding-bottom:16px; max-height:none !important; }
+    .map-side-panel { overflow-y:auto !important; padding-right:14px; padding-bottom:0; }
 
     /* 6. 하단바 */
     .bottom-bar { position:fixed !important; bottom:0; left:0; right:0;
