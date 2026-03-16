@@ -4,6 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>🍀 로또명당지도</title>
+
+<!-- ── PWA ── -->
+<meta name="application-name" content="로또명당지도">
+<meta name="description" content="전국 로또 1등 명당을 한눈에! 역대 당첨 판매점 지도 서비스">
+<meta name="theme-color" content="#FFB800">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="명당지도">
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
+<link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABLElEQVR4nM2W4QcCQRTE7x9OJJJIJJFIIpFEIolE+vuu4bm7vb29fe/d9U7D78Ps7c7Mx0uSf1f6SdK26EvfeGgEX/7CRWPqy5+4oMGV8m21/IEPUmJS5JQH3HHIoZEgrzzghkMOjQR5RfkVBxxNJMilARcYjiYS5NKAM0wdv1AknwacYHwsFOihAUcYHwsFemjAAcbFUl4XDdjDuFjK66IBO5iMLuT00YAtTEYXcvpowAYmows5fTRgDeNiKa+LBqxgXCzlddGAJYyPhQI9NGAB42OhQA8NmMPU8QtF8mnADIajiQS5NGAKw9FEgtzip2SCAw6NBHnlX7IxDjk0EuSVB4xwKCUmRU7113yID1JCUryvlOcjBrhgTG15PqKPi0aw5ZUxPTxsSSz/C8rSF9IXj5n6AAAAAElFTkSuQmCC">
+<link rel="manifest" href="manifest.json">
 <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=0f283217abb610bf9916ff579ce9cf9e&libraries=services,clusterer,drawing"></script>
 <script>
 
@@ -358,7 +370,42 @@
   .bottom-bar-inner { display:flex; gap:10px; width:100%; max-width:1200px; margin:0 auto; }
   .btn-main { flex:1; padding:14px 0; background:linear-gradient(135deg,#FFB800,#FF6B00); border:none; border-radius:14px; font-weight:900; font-size:15px; color:#000; cursor:pointer; box-shadow:0 4px 24px rgba(255,184,0,0.4); font-family:'Noto Sans KR',sans-serif; transition:transform 0.15s; }
   .btn-main:active { transform:scale(0.97); }
-  .btn-bell { width:52px; padding:14px 0; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1); border-radius:14px; font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .btn-bell { width:52px; padding:14px 0; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1); border-radius:14px; font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .btn-bell:active { transform:scale(0.95); }
+
+  /* 앱 설치 안내 모달 */
+  .install-modal { display:none; position:fixed; inset:0; z-index:300; background:rgba(0,0,0,0.75); backdrop-filter:blur(6px); align-items:flex-end; justify-content:center; }
+  .install-modal.open { display:flex !important; }
+  .install-sheet {
+    background:var(--nearby-bg);
+    border-radius:24px 24px 0 0;
+    padding:24px 20px 40px;
+    width:100%; max-width:600px;
+    animation:fadeUp 0.3s ease;
+  }
+  .install-tabs { display:flex; gap:6px; margin:16px 0; background:rgba(255,255,255,0.05); border-radius:12px; padding:4px; }
+  .install-tab-btn { flex:1; padding:10px 0; border-radius:9px; border:none; cursor:pointer; font-size:14px; font-weight:700; font-family:'Noto Sans KR',sans-serif; background:transparent; color:#666; transition:all 0.2s; }
+  .install-tab-btn.active { background:linear-gradient(135deg,#FFB800,#FF6B00); color:#000; }
+  .install-tab-content { display:none; }
+  .install-tab-content.active { display:block; }
+  .install-step {
+    display:flex; align-items:flex-start; gap:12px;
+    padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.06);
+  }
+  .install-step:last-of-type { border-bottom:none; }
+  .install-step-num {
+    width:28px; height:28px; border-radius:50%; flex-shrink:0;
+    background:linear-gradient(135deg,#FFB800,#FF6B00);
+    color:#000; font-size:13px; font-weight:900;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .install-step-text { font-size:13px; color:var(--text-primary); line-height:1.6; }
+  .install-step-text b { color:#FFB800; }
+  .install-tip {
+    margin-top:14px; padding:10px 14px;
+    background:rgba(255,184,0,0.08); border:1px solid rgba(255,184,0,0.2);
+    border-radius:10px; font-size:12px; color:#999; line-height:1.6;
+  }
   .my-location-btn { position:absolute; bottom:16px; right:16px; z-index:10; width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#FFB800,#FF6B00); border:none; cursor:pointer; font-size:18px; box-shadow:0 2px 12px rgba(255,184,0,0.5); display:flex; align-items:center; justify-content:center; }
 
   /* 내 주변 모달 */
@@ -823,7 +870,7 @@
         <div class="modal-mini-logo-text">로또명당지도</div>
       </div>
       <div class="modal-mini-tabs">
-        <button class="modal-mini-tab" onclick="closeNearbyModal()">📍 지도</button>
+        <button class="modal-mini-tab" onclick="closeNearbyModal();switchTab('map',document.querySelectorAll('.tab-btn')[0])">📍 지도</button>
         <button class="modal-mini-tab" onclick="closeNearbyModal();document.querySelectorAll('.tab-btn').forEach(b=>{if(b.textContent.includes('명당'))b.click()})">🏆 명당</button>
         <button class="modal-mini-tab" onclick="closeNearbyModal();document.querySelectorAll('.tab-btn').forEach(b=>{if(b.textContent.includes('최신'))b.click()})">⚡ 최신</button>
       </div>
@@ -859,8 +906,9 @@
         <span class="pc-stat-lbl">역대 최고</span>
       </div>
     </div>
-    <button class="btn-main" onclick="openNearbyModal()">📍 내 주변 명당 찾기</button>
+    <button class="btn-main" onclick="openNearbyModal()" style="font-size:14px">📍 내 주변 명당</button>
     <button class="btn-bell" onclick="openLuckyModal()" title="행운번호 뽑기">🍀</button>
+    <button class="btn-bell" onclick="openInstallModal()" title="홈 화면에 추가">🔖</button>
   </div>
 </div>
 
@@ -2183,7 +2231,7 @@ window.onload=()=>{initMap();};
           <div class="modal-mini-logo-text">로또명당지도</div>
         </div>
         <div class="modal-mini-tabs">
-          <button class="modal-mini-tab" onclick="closeLuckyModal()">📍 지도</button>
+          <button class="modal-mini-tab" onclick="closeLuckyModal();switchTab('map',document.querySelectorAll('.tab-btn')[0])">📍 지도</button>
           <button class="modal-mini-tab" onclick="closeLuckyModal();document.querySelectorAll('.tab-btn').forEach(b=>{if(b.textContent.includes('명당'))b.click()})">🏆 명당</button>
           <button class="modal-mini-tab" onclick="closeLuckyModal();document.querySelectorAll('.tab-btn').forEach(b=>{if(b.textContent.includes('최신'))b.click()})">⚡ 최신</button>
         </div>
@@ -2222,6 +2270,70 @@ window.onload=()=>{initMap();};
       <button onclick="closeLuckyModal()" class="nearby-close" style="margin-top:14px">닫기</button>
     </div>
   </div>
+
+  <!-- 🔖 홈 화면 추가 안내 모달 -->
+  <div class="install-modal" id="installModal">
+    <div class="install-sheet">
+      <!-- 헤더 -->
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:18px;font-weight:900;color:#FFB800">🔖 홈 화면에 추가하기</div>
+          <div style="font-size:12px;color:#888;margin-top:3px">앱처럼 바로 실행할 수 있어요!</div>
+        </div>
+        <div onclick="closeInstallModal()" style="font-size:20px;cursor:pointer;color:#666;padding:4px 8px">✕</div>
+      </div>
+
+      <!-- OS 탭 -->
+      <div class="install-tabs">
+        <button class="install-tab-btn active" id="installTabAndroid" onclick="switchInstallTab('android')">🤖 안드로이드</button>
+        <button class="install-tab-btn" id="installTabIos" onclick="switchInstallTab('ios')">🍎 아이폰 (iOS)</button>
+      </div>
+
+      <!-- 안드로이드 -->
+      <div class="install-tab-content active" id="installContentAndroid">
+        <div class="install-step">
+          <div class="install-step-num">1</div>
+          <div class="install-step-text"><b>크롬 브라우저</b>로 이 페이지를 열어주세요.<br><span style="font-size:11px;color:#777">다른 브라우저는 지원이 제한될 수 있어요</span></div>
+        </div>
+        <div class="install-step">
+          <div class="install-step-num">2</div>
+          <div class="install-step-text">주소창 오른쪽 <b>⋮ 메뉴</b> 버튼을 탭하세요.</div>
+        </div>
+        <div class="install-step">
+          <div class="install-step-num">3</div>
+          <div class="install-step-text"><b>"홈 화면에 추가"</b> 또는 <b>"앱 설치"</b>를 탭하세요.</div>
+        </div>
+        <div class="install-step">
+          <div class="install-step-num">4</div>
+          <div class="install-step-text"><b>"추가"</b>를 누르면 홈 화면에 🍀 아이콘이 생겨요!</div>
+        </div>
+        <div class="install-tip">💡 크롬에서 접속 시 하단에 <b style="color:#FFB800">"앱 설치" 배너</b>가 자동으로 뜨기도 해요. 그 배너를 탭해도 설치돼요!</div>
+      </div>
+
+      <!-- iOS -->
+      <div class="install-tab-content" id="installContentIos">
+        <div class="install-step">
+          <div class="install-step-num">1</div>
+          <div class="install-step-text"><b>사파리(Safari)</b>로 이 페이지를 열어주세요.<br><span style="font-size:11px;color:#777">크롬·네이버 앱에서는 홈 화면 추가가 안 돼요</span></div>
+        </div>
+        <div class="install-step">
+          <div class="install-step-num">2</div>
+          <div class="install-step-text">하단 가운데 <b>공유 버튼 ⎙</b> (네모+위 화살표)을 탭하세요.</div>
+        </div>
+        <div class="install-step">
+          <div class="install-step-num">3</div>
+          <div class="install-step-text">아래로 스크롤해서 <b>"홈 화면에 추가"</b>를 탭하세요.</div>
+        </div>
+        <div class="install-step">
+          <div class="install-step-num">4</div>
+          <div class="install-step-text">우측 상단 <b>"추가"</b>를 누르면 완료! 🍀 아이콘이 생겨요.</div>
+        </div>
+        <div class="install-tip">💡 설치 후 실행하면 주소창 없이 <b style="color:#FFB800">앱처럼 전체화면</b>으로 열려요!</div>
+      </div>
+
+      <button onclick="closeInstallModal()" class="nearby-close" style="margin-top:6px">닫기</button>
+    </div>
+  </div>
 <script>
   // 핀치줌 차단 (지도 제외)
   document.addEventListener('touchstart', function(e){
@@ -2252,6 +2364,44 @@ window.onload=()=>{initMap();};
 
   
 
+</script>
+
+
+<script>
+  // ── 홈 화면 추가 안내 모달 ──
+  function openInstallModal(){
+    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    switchInstallTab(isIos ? 'ios' : 'android');
+    document.getElementById('installModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    document.querySelector('header').style.display = 'none';
+  }
+  function closeInstallModal(){
+    document.getElementById('installModal').classList.remove('open');
+    document.body.style.overflow = '';
+    document.querySelector('header').style.display = '';
+  }
+  function switchInstallTab(os){
+    ['android','ios'].forEach(t => {
+      document.getElementById('installTab'  + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('active', t === os);
+      document.getElementById('installContent' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('active', t === os);
+    });
+  }
+  // 모달 바깥 탭하면 닫기
+  document.getElementById('installModal').addEventListener('click', function(e){
+    if(e.target === this) closeInstallModal();
+  });
+</script>
+
+<script>
+  // ── PWA 서비스워커 등록 ──
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('SW registered:', reg.scope))
+        .catch(err => console.log('SW error:', err));
+    });
+  }
 </script>
 </body>
 </html>
