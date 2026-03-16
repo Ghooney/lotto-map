@@ -318,7 +318,14 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     main   { padding:20px 48px 0; }
 
     /* 지도탭 - 지도 크게 + 사이드패널 오른쪽 */
-    .map-tab-grid { display:grid; grid-template-columns:1fr 320px; gap:20px; align-items:start; }
+    .map-tab-grid {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 20px;
+      align-items: start;
+      /* 그리드가 mapWrap 높이를 넘지 않도록 */
+      overflow: hidden;
+    }
     /* 지도 영역 sticky 고정 */
     #mapWrap { margin-bottom:0; position:sticky; top:80px; }
     /* kakaoMap: 범례+힌트가 보이도록 충분히 여백 확보 */
@@ -1600,10 +1607,9 @@ function syncSidePanelHeight(){
   if(!wrap || !panel) return;
   var h = wrap.getBoundingClientRect().height;
   if(h > 0){
-    panel.style.height  = h + 'px';
+    panel.style.height    = h + 'px';
     panel.style.maxHeight = h + 'px';
-    // grid 높이도 mapWrap에 맞춰 빈 공간 제거
-    if(grid) grid.style.height = h + 'px';
+    if(grid) grid.style.maxHeight = h + 'px';
   }
 }
 window.addEventListener('resize', syncSidePanelHeight);
