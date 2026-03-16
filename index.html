@@ -315,7 +315,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     main   { padding:20px 48px 0; }
 
     /* 지도탭 - 지도 크게 + 사이드패널 오른쪽 */
-    .map-tab-grid { display:grid; grid-template-columns:1fr 320px; gap:20px; align-items:start; }
+    .map-tab-grid { display:grid; grid-template-columns:1fr 320px; gap:20px; align-items:stretch; }
+    /* map-wrap이 그리드 높이를 채우도록 */
+    #mapWrap { margin-bottom:0; display:flex; flex-direction:column; }
 
     /* kakaoMap: 범례가 항상 보이도록 높이 제한 */
     #kakaoMap { height:calc(100vh - 380px); min-height:380px; max-height:620px; }
@@ -333,10 +335,10 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     .stat-value { font-size:20px; }
     .stat-label { font-size:11px; }
 
-    /* 사이드패널 지도와 같은 높이로 */
+    /* 사이드패널: map-wrap 전체(지도+힌트+범례) 높이에 맞춤 */
     .map-side-panel { display:flex; flex-direction:column; gap:12px;
-      max-height:calc(100vh - 380px); min-height:380px; overflow-y:auto;
-      padding-right:14px; padding-bottom:40px; }
+      align-self:stretch; overflow-y:auto;
+      padding-right:14px; padding-bottom:16px; }
     .map-side-panel::-webkit-scrollbar { width:4px; }
     .map-side-panel::-webkit-scrollbar-track { background:transparent; border-radius:4px; }
     .map-side-panel::-webkit-scrollbar-thumb { background:rgba(255,184,0,0.4); border-radius:4px; }
@@ -660,7 +662,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     #kakaoMap { height:calc(100vh - 310px) !important; min-height:380px; max-height:680px; }
 
     /* 5. 사이드패널 */
-    .map-side-panel { max-height:calc(100vh - 310px) !important; overflow-y:auto; padding-right:14px; padding-bottom:40px; }
+    .map-side-panel { align-self:stretch; overflow-y:auto !important; padding-right:14px; padding-bottom:16px; max-height:none !important; }
 
     /* 6. 하단바 */
     .bottom-bar { position:fixed !important; bottom:0; left:0; right:0;
