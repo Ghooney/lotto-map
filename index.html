@@ -315,12 +315,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     main   { padding:20px 48px 0; }
 
     /* 지도탭 - 지도 크게 + 사이드패널 오른쪽 */
-    .map-tab-grid { display:grid; grid-template-columns:1fr 320px; gap:20px; align-items:stretch; }
-    /* map-wrap이 그리드 높이를 채우도록 */
-    #mapWrap { margin-bottom:0; display:flex; flex-direction:column; }
-
-    /* kakaoMap: 범례가 항상 보이도록 높이 제한 */
-    #kakaoMap { height:calc(100vh - 380px); min-height:380px; max-height:620px; }
+    .map-tab-grid { display:grid; grid-template-columns:1fr 320px; gap:20px; align-items:start; }
+    /* 지도 영역 sticky 고정 */
+    #mapWrap { margin-bottom:0; position:sticky; top:80px; }
+    /* kakaoMap: 범례가 힌트 옆으로 옮겨져 높이 여유 생김 */
+    #kakaoMap { height:calc(100vh - 320px); min-height:400px; max-height:680px; }
     /* 명당/최신/NEW 탭 PC 레이아웃 */
     .rank-grid { max-width:960px; margin:0 auto; }
     #recentGrid { max-width:960px; margin:0 auto; }
@@ -335,10 +334,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     .stat-value { font-size:20px; }
     .stat-label { font-size:11px; }
 
-    /* 사이드패널: map-wrap 전체(지도+힌트+범례) 높이에 맞춤 */
+    /* 사이드패널 높이는 JS syncSidePanelHeight()가 동적으로 맞춤 */
     .map-side-panel { display:flex; flex-direction:column; gap:12px;
-      align-self:stretch; overflow-y:auto;
-      padding-right:14px; padding-bottom:16px; }
+      overflow-y:auto; padding-right:14px; padding-bottom:16px; }
     .map-side-panel::-webkit-scrollbar { width:4px; }
     .map-side-panel::-webkit-scrollbar-track { background:transparent; border-radius:4px; }
     .map-side-panel::-webkit-scrollbar-thumb { background:rgba(255,184,0,0.4); border-radius:4px; }
@@ -658,8 +656,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     /* 3. stats-row 숨김 */
     .stats-row { display:none !important; }
 
-    /* 4. 지도 높이 - 범례 보이도록 */
-    #kakaoMap { height:calc(100vh - 310px) !important; min-height:380px; max-height:680px; }
+    /* 4. 지도 높이 - 범례가 힌트 옆으로 이동해 여유 생김 */
+    #kakaoMap { height:calc(100vh - 230px) !important; min-height:400px; max-height:780px; }
+    #mapWrap { top:68px; }
 
     /* 5. 사이드패널 */
     .map-side-panel { align-self:stretch; overflow-y:auto !important; padding-right:14px; padding-bottom:16px; max-height:none !important; }
@@ -790,15 +789,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <button class="my-location-btn" onclick="goToMyLocation()" title="현재 위치로 이동" style="width:auto;border-radius:20px;padding:0 14px;font-size:12px;font-weight:700;white-space:nowrap">📍 내 위치</button>
           <div id="mapLoadingMsg">🔄 데이터 로딩 중...</div>
         </div>
-        <div class="zoom-hint">
-          <span class="zoom-hint-icon">🔍</span>
-          <span id="zoomHintText">지역 버블을 클릭하면 해당 지역 명당을 볼 수 있어요 · 줌인하면 개별 명당 마커가 나타나요</span>
-        </div>
-        <div class="map-legend">
-          <div class="legend-item"><div class="legend-dot" style="background:#CC0000"></div>최상위 명당</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#D94F00"></div>상위 명당</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#E07B00"></div>중위 명당</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#9E7A2E"></div>일반 명당</div>
+        <div class="zoom-hint" style="justify-content:space-between;flex-wrap:wrap;gap:6px">
+          <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+            <span class="zoom-hint-icon">🔍</span>
+            <span id="zoomHintText" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">지역 버블을 클릭하면 해당 지역 명당을 볼 수 있어요 · 줌인하면 개별 명당 마커가 나타나요</span>
+          </div>
+          <div class="map-legend" style="margin:0;padding:0;flex-shrink:0">
+            <div class="legend-item"><div class="legend-dot" style="background:#CC0000"></div>최상위</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#D94F00"></div>상위</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#E07B00"></div>중위</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#9E7A2E"></div>일반</div>
+          </div>
         </div>
       </div>
 
@@ -1255,6 +1256,8 @@ function initMap(){
       scheduleRender(100);
     }
   }, 500);
+  // 사이드패널 높이 맞춤 (지도+힌트+범례 전체)
+  setTimeout(syncSidePanelHeight, 400);
 }
 
 let _renderTimer = null;
@@ -1571,6 +1574,17 @@ function closeInfo(){
   var c=document.getElementById('mapInfoCard');
   if(c){c.style.display='none';c.innerHTML='';}
 }
+
+// PC에서 사이드패널 높이를 mapWrap과 정확히 맞춤
+function syncSidePanelHeight(){
+  if(window.innerWidth < 1024) return;
+  var wrap  = document.getElementById('mapWrap');
+  var panel = document.querySelector('.map-side-panel');
+  if(!wrap || !panel) return;
+  var h = wrap.getBoundingClientRect().height;
+  if(h > 0) panel.style.height = h + 'px';
+}
+window.addEventListener('resize', syncSidePanelHeight);
 
 // 지도 정중앙에 카드 표시 (모바일/PC 공통)
 function showMapCard(html){
@@ -2165,6 +2179,7 @@ function switchTab(id,btn){
   if(id==='map'&&map){
     setTimeout(()=>kakao.maps.event.trigger(map,'resize'),100);
     setTimeout(()=>scrollToMap(), 150);
+    setTimeout(syncSidePanelHeight, 300);
   }
   if(id==='numbers')renderNumbers();
   if(id==='rank'){ renderRank('all'); window.scrollTo({top:0,behavior:'smooth'}); }
