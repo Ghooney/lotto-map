@@ -322,7 +322,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     /* 지도 영역 sticky 고정 */
     #mapWrap { margin-bottom:0; position:sticky; top:80px; }
     /* kakaoMap: 배율 무관하게 뷰포트 기준으로 */
-    #kakaoMap { height:calc(100vh - 390px); min-height:360px; max-height:580px; }
+    #kakaoMap { height:calc(100vh - 460px); min-height:300px; max-height:460px; }
     /* PC: 줌힌트 한 줄에 범례 나란히, 모바일 범례 숨김 */
     .zoom-hint { justify-content:space-between; }
     .map-legend-pc     { display:flex; flex-shrink:0; margin:0; padding:0; gap:10px; }
@@ -330,7 +330,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     /* 사이드패널: mapWrap과 같은 높이, 넘치면 스크롤 */
     .map-side-panel { display:flex; flex-direction:column; gap:12px;
       overflow-y:auto; padding-right:14px; padding-bottom:0;
-      max-height:calc(100vh - 390px + 130px); }
+      max-height:calc(100vh - 460px + 130px); }
     .map-side-panel::-webkit-scrollbar { width:4px; }
     .map-side-panel::-webkit-scrollbar-track { background:transparent; border-radius:4px; }
     .map-side-panel::-webkit-scrollbar-thumb { background:rgba(255,184,0,0.4); border-radius:4px; }
@@ -662,7 +662,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     .stats-row { display:none !important; }
 
     /* 4. 지도 높이 */
-    #kakaoMap { height:calc(100vh - 240px) !important; min-height:380px; max-height:740px; }
+    #kakaoMap { height:calc(100vh - 350px) !important; min-height:300px; max-height:560px; }
     #mapWrap { top:68px; }
     /* 5. 사이드패널 */
     .map-side-panel { overflow-y:auto !important; padding-right:14px; padding-bottom:0;
