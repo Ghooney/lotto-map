@@ -2110,13 +2110,19 @@ function switchTab(id,btn){
 
   // ── 홈으로 ──
   function goHome(){
-    document.querySelectorAll('.tab-btn').forEach(b=>{if(b.textContent.includes('지도'))b.click();});
+    // 탭 전환은 직접 처리 (switchTab의 scrollToMap 호출을 피하기 위해)
+    document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el=>el.classList.remove('active'));
+    document.getElementById('tab-map').classList.add('active');
+    document.querySelectorAll('.tab-btn').forEach(b=>{if(b.textContent.includes('지도'))b.classList.add('active');});
     setTimeout(()=>{
-      if(!map)return;
+      if(!map) return;
+      kakao.maps.event.trigger(map,'resize');
       map.setCenter(new kakao.maps.LatLng(36.5,127.9)); map.setLevel(13);
       if(mapMode==='stores'){mapMode='region';storeOverlays.forEach(o=>o.setMap(null));storeOverlays=[];}
       regionOverlays.forEach(o=>o.setMap(map));
       closeInfo(); renderSidePanel(TOP_STORES,'역대 명당 TOP 10');
+      // 지도가 아닌 페이지 최상단으로 스크롤
       window.scrollTo({top:0,behavior:'smooth'});
     },100);
   }
