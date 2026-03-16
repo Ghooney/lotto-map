@@ -317,20 +317,33 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     header { padding:20px 48px 0; }
     main   { padding:20px 48px 0; }
 
-    /* 지도탭 - 지도 크게 + 사이드패널 오른쪽 */
+    /* 지도탭 그리드 */
     .map-tab-grid { display:grid; grid-template-columns:1fr 320px; gap:20px; align-items:start; }
-    /* 지도 영역 sticky 고정 */
-    #mapWrap { margin-bottom:0; position:sticky; top:80px; }
-    /* kakaoMap: 배율 무관하게 뷰포트 기준으로 */
-    #kakaoMap { height:calc(100vh - 460px); min-height:300px; max-height:460px; }
+    /* mapWrap: sticky + flex column으로 내부 요소 높이 제어 */
+    #mapWrap {
+      margin-bottom:0;
+      position:sticky;
+      top:80px;
+      display:flex;
+      flex-direction:column;
+    }
+    /* 지도: 뷰포트에서 헤더+타이틀+힌트+여백 제외한 높이 */
+    #kakaoMap {
+      width:100%;
+      height:calc(100vh - 260px);
+      min-height:320px;
+      max-height:600px;
+      flex-shrink:0;
+    }
     /* PC: 줌힌트 한 줄에 범례 나란히, 모바일 범례 숨김 */
-    .zoom-hint { justify-content:space-between; }
+    .zoom-hint { justify-content:space-between; flex-shrink:0; }
     .map-legend-pc     { display:flex; flex-shrink:0; margin:0; padding:0; gap:10px; }
     .map-legend-mobile { display:none; }
-    /* 사이드패널: mapWrap과 같은 높이, 넘치면 스크롤 */
-    .map-side-panel { display:flex; flex-direction:column; gap:12px;
+    /* 사이드패널: JS로 mapWrap 전체 높이를 받아 딱 맞게 */
+    .map-side-panel {
+      display:flex; flex-direction:column; gap:12px;
       overflow-y:auto; padding-right:14px; padding-bottom:0;
-      max-height:calc(100vh - 460px + 130px); }
+    }
     .map-side-panel::-webkit-scrollbar { width:4px; }
     .map-side-panel::-webkit-scrollbar-track { background:transparent; border-radius:4px; }
     .map-side-panel::-webkit-scrollbar-thumb { background:rgba(255,184,0,0.4); border-radius:4px; }
@@ -662,11 +675,10 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     .stats-row { display:none !important; }
 
     /* 4. 지도 높이 */
-    #kakaoMap { height:calc(100vh - 350px) !important; min-height:300px; max-height:560px; }
+    #kakaoMap { height:calc(100vh - 260px) !important; min-height:320px; max-height:600px; }
     #mapWrap { top:68px; }
-    /* 5. 사이드패널 */
-    .map-side-panel { overflow-y:auto !important; padding-right:14px; padding-bottom:0;
-      max-height:calc(100vh - 240px + 130px) !important; }
+    /* 5. 사이드패널: JS syncSidePanel()이 높이 제어 */
+    .map-side-panel { overflow-y:auto !important; padding-right:14px; padding-bottom:0; }
 
     /* 6. 하단바 */
     .bottom-bar { position:fixed !important; bottom:0; left:0; right:0;
@@ -1259,7 +1271,6 @@ function initMap(){
     }
   });
   renderSidePanel(TOP_STORES,'역대 명당 TOP 10');
-  // 초기 로딩 후 현재 레벨 체크 (외부에서 특정 lv로 진입 시 대응)
   setTimeout(()=>{
     if(map.getLevel() <= (window.innerWidth < 768 ? 11 : 12)){
       mapMode = 'stores';
@@ -1267,7 +1278,7 @@ function initMap(){
       scheduleRender(100);
     }
   }, 500);
-  // 사이드패널 높이 맞춤 (지도+힌트+범례 전체)
+  setTimeout(syncSidePanel, 600);
 }
 
 let _renderTimer = null;
@@ -1584,6 +1595,20 @@ function closeInfo(){
   var c=document.getElementById('mapInfoCard');
   if(c){c.style.display='none';c.innerHTML='';}
 }
+
+// PC: 사이드패널 높이 = mapWrap 실제 높이에 정확히 맞춤
+function syncSidePanel(){
+  if(window.innerWidth < 1024) return;
+  var wrap  = document.getElementById('mapWrap');
+  var panel = document.querySelector('.map-side-panel');
+  if(!wrap || !panel) return;
+  var h = wrap.getBoundingClientRect().height;
+  if(h > 10){
+    panel.style.height    = h + 'px';
+    panel.style.maxHeight = h + 'px';
+  }
+}
+window.addEventListener('resize', syncSidePanel);
 
 // PC 지도 탭 전환 시 맵 리사이즈
 
@@ -2197,6 +2222,7 @@ function switchTab(id,btn){
   if(id==='map'&&map){
     setTimeout(()=>kakao.maps.event.trigger(map,'resize'),100);
     setTimeout(()=>scrollToMap(), 150);
+    setTimeout(syncSidePanel, 400);
   }
   if(id==='numbers')renderNumbers();
   if(id==='rank'){ renderRank('all'); window.scrollTo({top:0,behavior:'smooth'}); }
