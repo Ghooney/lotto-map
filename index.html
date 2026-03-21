@@ -1612,21 +1612,27 @@ window.addEventListener('resize', syncSidePanel);
 
 // PC 지도 탭 전환 시 맵 리사이즈
 
-// PC에서 지도 탭 영역 휠 스크롤 차단 (지도 밖 흰 공간 포함)
+// PC에서 지도 탭 영역 휠 스크롤 차단
 document.addEventListener('DOMContentLoaded', function(){
-  var tabMap = document.getElementById('tab-map');
-  if(!tabMap) return;
-  tabMap.addEventListener('wheel', function(e){
-    if(window.innerWidth < 1024) return; // 모바일은 허용
+  if(window.innerWidth < 1024) return;
+
+  function blockScroll(e){
+    if(window.innerWidth < 1024) return;
     // 카카오맵 내부는 허용 (줌 조작)
     var mapEl = document.getElementById('kakaoMap');
     if(mapEl && mapEl.contains(e.target)) return;
     // 사이드패널 내부 스크롤은 허용
     var panel = document.querySelector('.map-side-panel');
     if(panel && panel.contains(e.target)) return;
-    // 그 외 모든 영역 스크롤 차단
     e.preventDefault();
-  }, { passive: false });
+    e.stopPropagation();
+  }
+
+  // tab-map 전체 + mapWrap 모두 차단
+  var tabMap = document.getElementById('tab-map');
+  var mapWrap = document.getElementById('mapWrap');
+  if(tabMap)  tabMap.addEventListener('wheel',  blockScroll, { passive:false });
+  if(mapWrap) mapWrap.addEventListener('wheel', blockScroll, { passive:false });
 });
 
 // 지도 정중앙에 카드 표시 (모바일/PC 공통)
