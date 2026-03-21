@@ -367,7 +367,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
      /* ── 명당탭 ── */
     #tab-rank { max-width:1100px; margin:0 auto; }
     .rank-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
-  #newStoresGrid { grid-template-columns:1fr; }
 
     /* ── 최신탭: 3열 ── */
     .recent-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
@@ -776,7 +775,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- 탭 -->
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('map',this)">📍 지도</button>
-    <button class="tab-btn" onclick="switchTab('new',this)">🔥 NEW</button>
+    <button class="tab-btn" onclick="switchTab('new',this)">🔥 신규</button>
     <button class="tab-btn" onclick="switchTab('rank',this)">🏆 명당</button>
     <button class="tab-btn" onclick="switchTab('recent',this)">⚡ 최신</button>
     <button class="tab-btn" onclick="switchTab('numbers',this)">📈 기록</button>
@@ -788,13 +787,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div id="tab-map" class="tab-content active">
     <div class="stats-row">
       <div class="stat-card" style="animation-delay:0.1s;cursor:pointer" onclick="switchTab('recent',document.querySelectorAll('.tab-btn')[2])">
-        <div class="stat-icon">🎱</div><div class="stat-value">1,215회</div><div class="stat-label">전체 회차 →</div>
+        <div class="stat-icon">🎱</div><div class="stat-value">1,215회</div><div class="stat-label">전체 회차</div>
       </div>
       <div class="stat-card" style="animation-delay:0.2s;cursor:pointer" onclick="switchTab('rank',document.querySelectorAll('.tab-btn')[1])">
-        <div class="stat-icon">🏆</div><div class="stat-value">49회</div><div class="stat-label">최다 배출 명당 →</div>
+        <div class="stat-icon">🏆</div><div class="stat-value">49회</div><div class="stat-label">최다 배출 명당</div>
       </div>
       <div class="stat-card" style="animation-delay:0.3s;cursor:pointer" onclick="goToTopRecord()">
-        <div class="stat-icon">💰</div><div class="stat-value">407억</div><div class="stat-label">역대 최고 당첨금 →</div>
+        <div class="stat-icon">💰</div><div class="stat-value">407억</div><div class="stat-label">역대 최고 당첨금</div>
       </div>
     </div>
     <div class="map-tab-grid">
@@ -1240,7 +1239,7 @@ function renderNewTab(){
     var ad = (s.addr||'').replace(/'/g,"&#39;");
     div.innerHTML = '<div class="store-card" style="animation-delay:' + (i*0.05) + 's">'
       + '<div style="display:flex;align-items:center;gap:10px">'
-      + '<div style="background:linear-gradient(135deg,#FF8C00,#FF4500);color:#fff;font-size:12px;font-weight:900;padding:4px 10px;border-radius:8px;flex-shrink:0">' + s.sido + ' 🔥</div>'
+      + '<div style="background:linear-gradient(135deg,#FF8C00,#FF4500);color:#fff;font-size:12px;font-weight:900;padding:4px 10px;border-radius:8px;flex-shrink:0">' + s.sido + '</div>'
       + '<div style="flex:1;min-width:0">'
       + '<div class="store-name" style="font-size:15px">' + s.n + '</div>'
       + '<div class="store-region" style="font-size:11px;margin-top:2px">📍 ' + s.sido + ' ' + s.gu + '</div>'
@@ -2277,19 +2276,65 @@ function switchTab(id,btn){
   }
 
   // ── 내 위치 기반 지도 이동 ──
+  // 내 위치 마커
+  let myLocationMarker = null;
+
+  function setMyLocationMarker(lat, lng){
+    // 기존 마커 제거
+    if(myLocationMarker){ myLocationMarker.setMap(null); myLocationMarker = null; }
+
+    const content = `
+      <div style="position:relative;width:20px;height:20px;">
+        <!-- 파동 애니메이션 -->
+        <div style="
+          position:absolute;top:50%;left:50%;
+          transform:translate(-50%,-50%);
+          width:40px;height:40px;
+          border-radius:50%;
+          background:rgba(66,133,244,0.2);
+          animation:myLocPulse 1.8s ease-out infinite;
+        "></div>
+        <!-- 파란 점 -->
+        <div style="
+          position:absolute;top:50%;left:50%;
+          transform:translate(-50%,-50%);
+          width:16px;height:16px;
+          border-radius:50%;
+          background:#4285F4;
+          border:3px solid #fff;
+          box-shadow:0 2px 8px rgba(66,133,244,0.6);
+          z-index:1;
+        "></div>
+      </div>
+      <style>
+        @keyframes myLocPulse {
+          0%   { transform:translate(-50%,-50%) scale(0.5); opacity:0.8; }
+          100% { transform:translate(-50%,-50%) scale(2.5); opacity:0; }
+        }
+      </style>`;
+
+    myLocationMarker = new kakao.maps.CustomOverlay({
+      position: new kakao.maps.LatLng(lat, lng),
+      content: content,
+      yAnchor: 0.5,
+      xAnchor: 0.5,
+      zIndex: 15
+    });
+    myLocationMarker.setMap(map);
+  }
+
   function goToMyLocation(){
-    // 지도 탭으로 전환
     document.querySelectorAll('.tab-btn').forEach(b=>{if(b.textContent.includes('지도'))b.click();});
     setTimeout(()=>{
       navigator.geolocation?.getCurrentPosition(pos=>{
-        map.setCenter(new kakao.maps.LatLng(pos.coords.latitude,pos.coords.longitude));
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        map.setCenter(new kakao.maps.LatLng(lat, lng));
         if(mapMode==='region'){mapMode='stores';regionOverlays.forEach(o=>o.setMap(null));}
-        map.setLevel(3); // lv3 = 100m (판매점 마커 레벨)
-        // 지도가 화면 최상단에 오도록 스크롤
+        map.setLevel(3);
+        setMyLocationMarker(lat, lng);
         scrollToMap();
       },()=>{
-        // 위치 권한 거부시에도 지도 최상단으로
-        const mapEl = document.getElementById('kakaoMap');
         scrollToMap();
       });
     },300);
