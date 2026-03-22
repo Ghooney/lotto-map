@@ -1377,7 +1377,6 @@ function _renderStores(){
   regionOverlays.forEach(o=>o.setMap(null));
   storeOverlays.forEach(o=>o.setMap(null));
   storeOverlays = [];
-  window._clusters = {}; // 클러스터 캐시 초기화
 
   const lv = map.getLevel();
   const cLat = map.getCenter().getLat();
@@ -1477,85 +1476,42 @@ function _renderStores(){
     });
 
   } else if(lv<=MK_MAX){
-    // lv1~5: 판매점 마커 — 클러스터링 적용
-    var nearby50 = nearest(W1_STORES,'t','g',50);
+    // lv1~5: 판매점 마커 — 겹침 방지 후 개별 표시
+    // 줌 레벨에 따라 겹침 방지 거리 조정 (줌 낮을수록 넓게 퍼뜨림)
+    var DECON_THRESH = lv <= 2 ? 0.0006 : lv <= 3 ? 0.0010 : lv <= 4 ? 0.0018 : 0.0030;
+    var placed = [];
 
-    // 줌 레벨별 클러스터 묶음 거리
-    var CLUSTER_THRESH = lv <= 2 ? 0.0008 : lv <= 3 ? 0.0015 : lv <= 4 ? 0.003 : 0.006;
-    var clusters = [];
-    var used = new Array(nearby50.length).fill(false);
-
-    nearby50.forEach(function(s, i){
-      if(used[i]) return;
-      var group = [s];
-      used[i] = true;
-      nearby50.forEach(function(s2, j){
-        if(used[j] || i===j) return;
-        if(Math.abs(s.t-s2.t)+Math.abs(s.g-s2.g) < CLUSTER_THRESH){
-          group.push(s2); used[j] = true;
-        }
-      });
-      var totalW = group.reduce(function(a,x){ return a+x.w; },0);
-      var cLat   = group.reduce(function(a,x){ return a+x.t*x.w; },0)/totalW;
-      var cLng   = group.reduce(function(a,x){ return a+x.g*x.w; },0)/totalW;
-      clusters.push({stores:group, lat:cLat, lng:cLng, totalW:totalW});
-    });
-
-    clusters.forEach(function(cl){
-      if(cl.stores.length === 1){
-        var s = cl.stores[0];
-        var nm = s.n.replace(/'/g,"&#39;"), ad=(s.a||'').replace(/'/g,"&#39;");
-        var oc = "showStoreInfo('"+nm+"','"+s.sido+" "+s.gu+"',"+s.w+","+s.w2+",'"+s.lv+"',"+s.t+","+s.g+",'"+ad+"')";
-        var ov = new kakao.maps.CustomOverlay({
-          position: new kakao.maps.LatLng(s.t,s.g),
-          content: '<div class="marker-wrap" onclick="'+oc+'"><div class="marker-bubble '+s.lv+'">🏆 '+s.n+' <small>'+s.w+'회</small></div></div>',
-          yAnchor:1, zIndex:5
+    function deconflict(lat, lng){
+      var OFFSETS = [
+        [0,0],
+        [0, DECON_THRESH], [0,-DECON_THRESH],
+        [DECON_THRESH,0], [-DECON_THRESH,0],
+        [DECON_THRESH, DECON_THRESH], [-DECON_THRESH, DECON_THRESH],
+        [DECON_THRESH,-DECON_THRESH], [-DECON_THRESH,-DECON_THRESH],
+        [0, DECON_THRESH*2], [0,-DECON_THRESH*2],
+        [DECON_THRESH*2,0], [-DECON_THRESH*2,0]
+      ];
+      for(var i=0; i<OFFSETS.length; i++){
+        var clat = lat+OFFSETS[i][0], clng = lng+OFFSETS[i][1];
+        var ok = placed.every(function(p){
+          return Math.abs(p[0]-clat)+Math.abs(p[1]-clng) > DECON_THRESH*0.85;
         });
-        ov.setMap(map); storeOverlays.push(ov);
-      } else {
-        // 클러스터 버블
-        var cid = 'cl_'+Math.round(cl.lat*10000)+'_'+Math.round(cl.lng*10000);
-        var top = cl.stores.slice().sort(function(a,b){return b.w-a.w;})[0];
-        // onclick에서 cid를 data속성으로 읽어 따옴표 충돌 방지
-        var clDiv = document.createElement('div');
-        clDiv.className = 'marker-wrap';
-        clDiv.setAttribute('data-cid', cid);
-        clDiv.style.cursor = 'pointer';
-        clDiv.innerHTML = '<div class="marker-bubble '+top.lv+'" style="display:flex;align-items:center;gap:5px;padding:6px 12px">'
-          +'<span>🏆</span><span style="font-weight:900">'+cl.stores.length+'개 명당</span>'
-          +'<span style="font-size:10px;opacity:0.8;background:rgba(0,0,0,0.15);border-radius:8px;padding:1px 5px">펼치기 ▼</span>'
-          +'</div>';
-        clDiv.onclick = (function(id){ return function(){ expandCluster(id); }; })(cid);
-        var clOv = new kakao.maps.CustomOverlay({
-          position: new kakao.maps.LatLng(cl.lat,cl.lng),
-          content: clDiv, yAnchor:1, zIndex:10
-        });
-        clOv.setMap(map); storeOverlays.push(clOv);
-
-        // 개별 마커 (펼쳤을 때)
-        var subOvs = [];
-        var sorted = cl.stores.slice().sort(function(a,b){return b.w-a.w;});
-        sorted.forEach(function(s, idx){
-          var angle = (idx/sorted.length)*2*Math.PI - Math.PI/2;
-          var spread = 0.0014 + 0.0005*Math.floor(idx/8);
-          var sLat = cl.lat + spread*Math.cos(angle);
-          var sLng = cl.lng + spread*Math.sin(angle)*1.5;
-          var nm = s.n.replace(/'/g,"&#39;"), ad=(s.a||'').replace(/'/g,"&#39;");
-          var oc = "showStoreInfo('"+nm+"','"+s.sido+" "+s.gu+"',"+s.w+","+s.w2+",'"+s.lv+"',"+s.t+","+s.g+",'"+ad+"')";
-          var subDiv = document.createElement('div');
-          subDiv.className = 'marker-wrap';
-          subDiv.innerHTML = '<div class="marker-bubble '+s.lv+'" style="font-size:11px;padding:4px 8px">🏆 '+s.n+' <small>'+s.w+'회</small></div>';
-          subDiv.onclick = new Function(oc);
-          var subOv = new kakao.maps.CustomOverlay({
-            position: new kakao.maps.LatLng(sLat,sLng),
-            content: subDiv, yAnchor:1, zIndex:8
-          });
-          subOvs.push(subOv);
-        });
-
-        if(!window._clusters) window._clusters = {};
-        window._clusters[cid] = {expanded:false, clOv:clOv, subOvs:subOvs};
+        if(ok){ placed.push([clat,clng]); return [clat,clng]; }
       }
+      // 모든 오프셋 써도 겹치면 마지막 위치라도 사용
+      placed.push([lat,lng]); return [lat,lng];
+    }
+
+    nearest(W1_STORES,'t','g',50).forEach(function(s){
+      var nm = s.n.replace(/'/g,"&#39;"), ad=(s.a||'').replace(/'/g,"&#39;");
+      var oc = "showStoreInfo('"+nm+"','"+s.sido+" "+s.gu+"',"+s.w+","+s.w2+",'"+s.lv+"',"+s.t+","+s.g+",'"+ad+"')";
+      var pos = deconflict(s.t, s.g);
+      var ov = new kakao.maps.CustomOverlay({
+        position: new kakao.maps.LatLng(pos[0], pos[1]),
+        content: '<div class="marker-wrap" onclick="'+oc+'"><div class="marker-bubble '+s.lv+'">🏆 '+s.n+' <small>'+s.w+'회</small></div></div>',
+        yAnchor:1, zIndex:5
+      });
+      ov.setMap(map); storeOverlays.push(ov);
     });
   }
 
@@ -1563,23 +1519,6 @@ function _renderStores(){
   updateSidePanelByView();
 }
 
-
-// ── 클러스터 펼치기/접기 ──
-function expandCluster(cid){
-  if(!window._clusters || !window._clusters[cid]) return;
-  var c = window._clusters[cid];
-  if(c.expanded){
-    // 접기
-    c.subOvs.forEach(function(o){ o.setMap(null); });
-    c.clOv.setMap(map);
-    c.expanded = false;
-  } else {
-    // 펼치기 — 클러스터 버블 숨기고 개별 마커 표시
-    c.clOv.setMap(null);
-    c.subOvs.forEach(function(o){ o.setMap(map); storeOverlays.push(o); });
-    c.expanded = true;
-  }
-}
 
 function zoomToRegionStores(name, lat, lng){
   closeInfo();
