@@ -1286,6 +1286,14 @@ function renderNewTab(){
 }
 
 function initMap(){
+  // NEW_STORES를 W1_STORES 형식으로 변환해서 병합
+  NEW_STORES.forEach(function(s){
+    var already = W1_STORES.some(function(w){ return Math.abs(w.t-s.t)<0.0001 && Math.abs(w.g-s.g)<0.0001; });
+    if(!already){
+      W1_STORES.push({n:s.n, sido:s.sido, gu:s.gu, dong:'', t:s.t, g:s.g, w:s.w||1, w2:s.w2||0, lv:s.lv||'mild', a:s.addr||''});
+    }
+  });
+
   map=new kakao.maps.Map(document.getElementById('kakaoMap'),{center:new kakao.maps.LatLng(36.5,127.9),level:13});
   showRegionBubbles();
   kakao.maps.event.addListener(map,'zoom_changed',onZoomChanged);
@@ -1915,10 +1923,10 @@ function fetchLottoInfo(round){
   if(_lottoFetchCache[round]) return;
   _lottoFetchCache[round] = true;
   fetch('https://www.dhlottery.co.kr/common.do?method=getLottoNumber&drwNo='+round)
-    .then(r=>r.json())
-    .then(d=>{
+    .then(function(r){ return r.json(); })
+    .then(function(d){
       if(d.returnValue !== 'success') return;
-      const info = {
+      var info = {
         round: d.drwNo,
         nums: [d.drwtNo1,d.drwtNo2,d.drwtNo3,d.drwtNo4,d.drwtNo5,d.drwtNo6],
         bonus: d.bnusNo,
@@ -1926,29 +1934,24 @@ function fetchLottoInfo(round){
         count1: d.firstPrzwnerCo,
         date: d.drwNoDate
       };
-      // LOTTO_RECENT에 추가
       LOTTO_RECENT.push(info);
-      // 해당 카드의 placeholder를 실제 데이터로 교체
-      const card = document.querySelector('[data-round="'+round+'"]');
-      if(card){
-        const ph = card.querySelector('[data-lotto-placeholder]');
-        if(ph){
-          const ballClass = (n)=>n<=10?'b1':n<=20?'b2':n<=30?'b3':n<=40?'b4':'b1';
-          const total = formatPrize(info.prize1 * info.count1);
-          const per = formatPrize(info.prize1);
-          const balls = '<div class="round-balls">'+info.nums.map(n=>'<div class="num-ball '+ballClass(n)+'">'+n+'</div>').join('')+'<span class="ball-plus">+</span><div class="num-ball bonus">'+info.bonus+'</div></div>';
-          const accId = 'racc-'+round;
-          ph.outerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">'
-            +'<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:8px;text-align:center"><div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px">💰 총 당첨금</div><div style="font-size:13px;font-weight:900;color:var(--tab-active-color)">'+total+'</div></div>'
-            +'<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:8px;text-align:center"><div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px">👥 당첨자</div><div style="font-size:13px;font-weight:900;color:var(--tab-active-color)">'+info.count1+'명</div></div>'
-            +'<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:8px;text-align:center"><div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px">💎 1인당</div><div style="font-size:13px;font-weight:900;color:var(--tab-active-color)">'+per+'</div></div>'
-            +'</div>'
-            +'<button onclick="toggleAcc(''+accId+'')" style="width:100%;padding:8px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;color:var(--text-secondary);font-size:12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;display:flex;align-items:center;justify-content:center;gap:4px"><span>🎱 당첨번호 보기</span><span id="'+accId+'-arrow" style="transition:transform 0.2s">▼</span></button>'
-            +'<div id="'+accId+'" style="display:none;margin-top:8px;padding:10px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px">'+balls+'</div>';
-        }
-      }
+      var card = document.querySelector('[data-round="'+round+'"]');
+      if(!card) return;
+      var ph = card.querySelector('[data-lotto-placeholder]');
+      if(!ph) return;
+      var bc = function(n){ return n<=10?'b1':n<=20?'b2':n<=30?'b3':n<=40?'b4':'b1'; };
+      var balls = '<div class="round-balls">' + info.nums.map(function(n){ return '<div class="num-ball '+bc(n)+'">'+n+'</div>'; }).join('') + '<span class="ball-plus">+</span><div class="num-ball bonus">'+info.bonus+'</div></div>';
+      var accId = 'racc-'+round;
+      var html = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">'
+        + '<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:8px;text-align:center"><div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px">💰 총 당첨금</div><div style="font-size:13px;font-weight:900;color:var(--tab-active-color)">'+formatPrize(info.prize1*info.count1)+'</div></div>'
+        + '<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:8px;text-align:center"><div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px">👥 당첨자</div><div style="font-size:13px;font-weight:900;color:var(--tab-active-color)">'+info.count1+'명</div></div>'
+        + '<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:8px;text-align:center"><div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px">💎 1인당</div><div style="font-size:13px;font-weight:900;color:var(--tab-active-color)">'+formatPrize(info.prize1)+'</div></div>'
+        + '</div>'
+        + '<button onclick="toggleAcc(\''+accId+'\')" style="width:100%;padding:8px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;color:var(--text-secondary);font-size:12px;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;display:flex;align-items:center;justify-content:center;gap:4px"><span>🎱 당첨번호 보기</span><span id="'+accId+'-arrow" style="transition:transform 0.2s">▼</span></button>'
+        + '<div id="'+accId+'" style="display:none;margin-top:8px;padding:10px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px">'+balls+'</div>';
+      ph.outerHTML = html;
     })
-    .catch(()=>{ _lottoFetchCache[round]=false; });
+    .catch(function(){ _lottoFetchCache[round] = false; });
 }
 
 function renderRecentCard(r,lotto,isLatest){
