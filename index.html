@@ -1854,11 +1854,11 @@ function renderRecent(){
     // RECENT_WINS의 최신 회차가 JSON에 없으면 앞에 병합
     const localData = buildFromRecentWins();
     const jsonRounds = new Set(data.map(d=>d.round));
-    const newRounds = localData.filter(d=>!jsonRounds.has(d.round));
+    const newRounds = localData.filter(d=>!jsonRounds.has(d.round)).sort((a,b)=>b.round-a.round);
     window.RECENT_ALL = [...newRounds, ...data];
     renderRecentGrid();
   }).catch(()=>{
-    window.RECENT_ALL = buildFromRecentWins();
+    window.RECENT_ALL = buildFromRecentWins().sort((a,b)=>b.round-a.round);
     renderRecentGrid();
   });
 }
