@@ -2373,19 +2373,23 @@ function switchTab(id,btn){
 
   function goToMyLocation(){
     document.querySelectorAll('.tab-btn').forEach(b=>{if(b.textContent.includes('지도'))b.click();});
-    setTimeout(()=>{
-      navigator.geolocation?.getCurrentPosition(pos=>{
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        map.setCenter(new kakao.maps.LatLng(lat, lng));
+    navigator.geolocation?.getCurrentPosition(pos=>{
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      // resize 완료 후 setCenter 호출 (모바일 레이아웃 확정 대기)
+      setTimeout(()=>{
+        kakao.maps.event.trigger(map,'resize');
+      },100);
+      setTimeout(()=>{
         if(mapMode==='region'){mapMode='stores';regionOverlays.forEach(o=>o.setMap(null));}
         map.setLevel(3);
+        map.setCenter(new kakao.maps.LatLng(lat, lng));
         setMyLocationMarker(lat, lng);
         scrollToMap();
-      },()=>{
-        scrollToMap();
-      });
-    },300);
+      },350);
+    },()=>{
+      scrollToMap();
+    });
   }
 
   
