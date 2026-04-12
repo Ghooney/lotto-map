@@ -772,7 +772,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="logo-sub" style="grid-column:2;padding-left:1px">LOTTO LUCKY MAP</div>
       </div>
     </div>
-    <div class="badge-live" style="text-align:center;line-height:1.4;flex-shrink:1;margin-left:auto;font-size:11px;padding:6px 16px;white-space:nowrap">제 1218회차<br><span style="font-size:10px;font-weight:400;opacity:0.85">2026.04.04 추첨</span></div>
+    <div class="badge-live" style="text-align:center;line-height:1.4;flex-shrink:1;margin-left:auto;font-size:11px;padding:6px 16px;white-space:nowrap">제 1219회차<br><span style="font-size:10px;font-weight:400;opacity:0.85">2026.04.11 추첨</span></div>
     <button class="theme-toggle" onclick="toggleTheme()" title="테마 변경" style="flex-shrink:0">☀️</button>
   </div>
   <!-- 탭 -->
@@ -790,7 +790,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div id="tab-map" class="tab-content active">
     <div class="stats-row">
       <div class="stat-card" style="animation-delay:0.1s;cursor:pointer" onclick="switchTab('recent',document.querySelectorAll('.tab-btn')[2])">
-        <div class="stat-icon">🎱</div><div class="stat-value">1,218회</div><div class="stat-label">전체 회차</div>
+        <div class="stat-icon">🎱</div><div class="stat-value">1,219회</div><div class="stat-label">전체 회차</div>
       </div>
       <div class="stat-card" style="animation-delay:0.2s;cursor:pointer" onclick="switchTab('rank',document.querySelectorAll('.tab-btn')[1])">
         <div class="stat-icon">🏆</div><div class="stat-value">50회</div><div class="stat-label">최다 배출 명당</div>
@@ -914,7 +914,211 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
   </div>
 
-  <!-- 내 주변 명당 모달 -->
+  
+<!-- ── 로또기운 부적 모달 ── -->
+<style>
+#charmModal {
+  display:none; position:fixed; inset:0; z-index:9999;
+  background:rgba(0,0,0,0.75);
+  align-items:center; justify-content:center;
+  padding:20px;
+}
+#charmModal.open { display:flex; }
+
+.charm-modal-inner {
+  width:100%; max-width:360px;
+  display:flex; flex-direction:column; gap:16px;
+}
+
+/* ── 별명 입력 팝업 ── */
+#charmStep1 {
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:24px;
+}
+.charm-step1-title {
+  font-size:16px; font-weight:700;
+  color:var(--text-primary);
+  margin-bottom:6px;
+}
+.charm-step1-sub {
+  font-size:13px; color:var(--text-secondary);
+  margin-bottom:18px; line-height:1.5;
+}
+#charmNickInput {
+  width:100%; font-size:16px;
+  padding:11px 14px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--bg-main);
+  color:var(--text-primary);
+  margin-bottom:14px;
+  font-family:inherit;
+  box-sizing:border-box;
+}
+.charm-step1-btns { display:flex; gap:8px; }
+.charm-cancel-btn {
+  flex:1; padding:11px;
+  border-radius:10px; font-size:14px; font-weight:600;
+  border:1px solid var(--border);
+  background:var(--bg-card-hover);
+  color:var(--text-secondary);
+  cursor:pointer; font-family:inherit;
+}
+.charm-make-btn {
+  flex:2; padding:11px;
+  border-radius:10px; font-size:14px; font-weight:700;
+  border:none;
+  background:linear-gradient(135deg,#C9960A,#F0B429);
+  color:#fff;
+  cursor:pointer; font-family:inherit;
+}
+
+/* ── 생성된 부적 카드 ── */
+#charmStep2 { display:none; flex-direction:column; gap:12px; }
+#charmStep2.visible { display:flex; }
+
+/* 캡처 대상 카드 */
+#charmCard {
+  background:#130E00;
+  border-radius:16px;
+  border:1.5px solid #C9960A;
+  overflow:hidden;
+  position:relative;
+  font-family:'Noto Sans KR', sans-serif;
+}
+.cc-logo-img {
+  position:absolute; top:6px; right:6px;
+  width:60px; height:60px;
+  object-fit:contain;
+  mix-blend-mode:screen;
+  z-index:2; pointer-events:none;
+}
+.cc-header {
+  padding:16px 16px 12px;
+  border-bottom:0.5px solid rgba(201,150,10,0.25);
+  position:relative; z-index:1;
+}
+.cc-brand {
+  font-size:12px; font-weight:700;
+  color:#C9960A; letter-spacing:0.04em;
+  margin-bottom:8px;
+  padding-right:68px;
+}
+.cc-badge {
+  display:inline-block;
+  background:rgba(201,150,10,0.12);
+  border:0.5px solid rgba(201,150,10,0.45);
+  border-radius:20px; padding:3px 10px;
+  font-size:10px; color:#D4A017;
+  letter-spacing:0.03em;
+}
+.cc-body {
+  padding:20px 16px 14px;
+  position:relative; z-index:1;
+}
+.cc-copy {
+  font-size:19px; font-weight:700;
+  color:#F0B429;
+  line-height:1.6;
+  margin-bottom:18px;
+  word-break:keep-all;
+}
+.cc-divider {
+  height:0.5px;
+  background:rgba(201,150,10,0.25);
+  margin-bottom:13px;
+}
+.cc-list-title {
+  font-size:10px; color:rgba(255,255,255,0.35);
+  margin-bottom:9px; letter-spacing:0.06em;
+}
+.cc-item {
+  display:flex; align-items:center;
+  justify-content:space-between;
+  margin-bottom:9px;
+}
+.cc-item-left { display:flex; align-items:center; gap:7px; }
+.cc-rank { font-size:13px; width:18px; }
+.cc-store { font-size:12px; color:rgba(255,255,255,0.85); }
+.cc-count { font-size:11px; color:#F0B429; font-weight:700; }
+.cc-footer {
+  padding:11px 16px 14px;
+  border-top:0.5px solid rgba(201,150,10,0.25);
+  text-align:center; position:relative; z-index:1;
+}
+.cc-cta { font-size:11px; color:rgba(255,255,255,0.45); margin-bottom:3px; }
+.cc-url { font-size:11px; color:#C9960A; font-weight:700; letter-spacing:0.03em; }
+
+/* 공유 버튼들 */
+.charm-share-btns { display:flex; gap:8px; }
+.charm-share-btn {
+  flex:1; padding:12px 8px;
+  border-radius:10px; font-size:13px; font-weight:700;
+  border:none; cursor:pointer; font-family:inherit;
+}
+.charm-share-btn.kakao { background:#FEE500; color:#3C1E1E; }
+.charm-share-btn.save  { background:linear-gradient(135deg,#C9960A,#F0B429); color:#fff; }
+.charm-share-btn.retry {
+  flex:none; padding:12px;
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  color:var(--text-secondary);
+  border-radius:10px; font-size:13px; font-weight:600;
+  cursor:pointer; font-family:inherit;
+}
+</style>
+
+<div id="charmModal" onclick="if(event.target===this)closeCharmModal()">
+  <div class="charm-modal-inner">
+
+    <!-- Step1: 별명 입력 -->
+    <div id="charmStep1">
+      <div class="charm-step1-title">🍀 로또기운 부적 만들기</div>
+      <div class="charm-step1-sub">별명을 입력하면 주변 명당 기운을 담은 부적을 만들어드려요</div>
+      <input id="charmNickInput" type="text" onkeydown="if(event.key==='Enter')makeCharm()" placeholder="예) 황금손, 행운아, 철수" maxlength="10" />
+      <div class="charm-step1-btns">
+        <button class="charm-cancel-btn" onclick="closeCharmModal()">취소</button>
+        <button class="charm-make-btn" onclick="makeCharm()">부적 만들기 🍀</button>
+      </div>
+    </div>
+
+    <!-- Step2: 생성된 카드 -->
+    <div id="charmStep2">
+      <div id="charmCard">
+        <img class="cc-logo-img" src="data:image/png;base64,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" alt="로또명당지도 로고" />
+        <div class="cc-header">
+          <div class="cc-brand">로또명당지도</div>
+          <div class="cc-badge">로또기운 부적</div>
+        </div>
+        <div class="cc-body">
+          <div class="cc-copy" id="charmCopy">
+            지금 황금손 님은<br>
+            로또 1등이 50번이나 터진<br>
+            명당 근처에 있습니다 🍀
+          </div>
+          <div class="cc-divider"></div>
+          <div class="cc-list-title">내 주변 명당 TOP 3</div>
+          <div id="charmTopList"></div>
+        </div>
+        <div class="cc-footer">
+          <div class="cc-cta">지금 내 근처의 로또명당도 찾아볼까요?</div>
+          <div class="cc-url">lotto-map-kr.vercel.app</div>
+        </div>
+      </div>
+
+      <div class="charm-share-btns">
+        <button class="charm-share-btn retry" onclick="resetCharm()">↩</button>
+        <button class="charm-share-btn kakao" onclick="shareCharmKakao()">카카오톡 공유</button>
+        <button class="charm-share-btn save"  onclick="saveCharmImage()">이미지 저장</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 내 주변 명당 모달 -->
 <div class="nearby-modal" id="nearbyModal" onclick="if(event.target===this)closeNearbyModal()">
   <div class="nearby-sheet">
     <div class="modal-mini-header">
@@ -945,7 +1149,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="pc-stat-bar">
       <div class="pc-stat-item" onclick="switchTab('recent',document.querySelectorAll('.tab-btn')[2])">
         <span class="pc-stat-icon">🎱</span>
-        <span class="pc-stat-val">1,218회</span>
+        <span class="pc-stat-val">1,219회</span>
         <span class="pc-stat-lbl">전체 회차</span>
       </div>
       <div class="pc-stat-item" onclick="switchTab('rank',document.querySelectorAll('.tab-btn')[1])">
@@ -961,6 +1165,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
     <button class="btn-main" onclick="openNearbyModal()" style="font-size:14px">📍 내 주변 명당</button>
     <button class="btn-bell" onclick="openLuckyModal()" title="행운번호 뽑기">🍀</button>
+    <button class="btn-bell" onclick="openCharmModal()" title="로또기운 부적 만들기" style="font-size:18px">🧧</button>
     <button class="btn-bell" onclick="openInstallModal()" title="홈 화면에 추가">➕</button>
   </div>
 </div>
@@ -971,10 +1176,11 @@ const GOV_CENTERS={"서울":{"lat":37.5663,"lng":126.9779,"office":"서울특별
 const CITY_CENTERS={"고양시":{"lat":37.6584,"lng":126.832},"김해시":{"lat":35.2342,"lng":128.8811},"남양주시":{"lat":37.636,"lng":127.2163},"부천시":{"lat":37.5034,"lng":126.766},"서귀포시":{"lat":33.2541,"lng":126.56},"성남시":{"lat":37.4449,"lng":127.1388},"세종시":{"lat":36.4801,"lng":127.2891},"수원시":{"lat":37.2636,"lng":127.0286},"안산시":{"lat":37.3219,"lng":126.8309},"안양시":{"lat":37.3943,"lng":126.9568},"용인시":{"lat":37.2411,"lng":127.1776},"전주시":{"lat":35.8242,"lng":127.148},"제주시":{"lat":33.4996,"lng":126.5312},"창원시":{"lat":35.228,"lng":128.6811},"천안시":{"lat":36.8151,"lng":127.1139},"청주시":{"lat":36.6424,"lng":127.489},"평택시":{"lat":36.9921,"lng":127.113},"포항시":{"lat":36.019,"lng":129.3435},"화성시":{"lat":37.1996,"lng":126.8313},"강릉시":{"lat":37.7519,"lng":128.8761},"거제시":{"lat":34.8806,"lng":128.6213},"경산시":{"lat":35.8254,"lng":128.7413},"경주시":{"lat":35.8562,"lng":129.2247},"계룡시":{"lat":36.2742,"lng":127.2494},"공주시":{"lat":36.4465,"lng":127.1192},"과천시":{"lat":37.4292,"lng":126.9876},"광명시":{"lat":37.4784,"lng":126.8647},"광양시":{"lat":34.9435,"lng":127.6957},"광주시":{"lat":37.4096,"lng":127.2559},"구리시":{"lat":37.5944,"lng":127.1296},"구미시":{"lat":36.1195,"lng":128.3446},"군산시":{"lat":35.9678,"lng":126.7368},"군포시":{"lat":37.3617,"lng":126.9352},"김제시":{"lat":35.8035,"lng":126.8809},"김천시":{"lat":36.1398,"lng":128.1136},"김포시":{"lat":37.6153,"lng":126.7158},"나주시":{"lat":35.016,"lng":126.7107},"남원시":{"lat":35.4164,"lng":127.3902},"논산시":{"lat":36.1874,"lng":127.099},"당진시":{"lat":36.8896,"lng":126.6457},"동두천시":{"lat":37.9034,"lng":127.0607},"동해시":{"lat":37.5244,"lng":129.1143},"마산시":{"lat":35.1834,"lng":128.5741},"목포시":{"lat":34.8118,"lng":126.3922},"문경시":{"lat":36.5864,"lng":128.1869},"밀양시":{"lat":35.5036,"lng":128.7489},"보령시":{"lat":36.3327,"lng":126.6128},"사천시":{"lat":35.0044,"lng":128.0647},"삼척시":{"lat":37.4455,"lng":129.165},"상주시":{"lat":36.411,"lng":128.1591},"서산시":{"lat":36.7847,"lng":126.4503},"속초시":{"lat":38.2071,"lng":128.5917},"순천시":{"lat":34.9506,"lng":127.4874},"시흥시":{"lat":37.38,"lng":126.8034},"아산시":{"lat":36.7897,"lng":127.0021},"안동시":{"lat":36.5684,"lng":128.7294},"안성시":{"lat":37.0079,"lng":127.2798},"양산시":{"lat":35.335,"lng":129.0366},"양주시":{"lat":37.7855,"lng":127.0456},"여수시":{"lat":34.7604,"lng":127.6622},"여주시":{"lat":37.2982,"lng":127.6378},"영주시":{"lat":36.8057,"lng":128.6237},"영천시":{"lat":35.9733,"lng":128.9381},"오산시":{"lat":37.1499,"lng":127.077},"원주시":{"lat":37.3427,"lng":127.9202},"의왕시":{"lat":37.3448,"lng":126.968},"의정부시":{"lat":37.7382,"lng":127.0337},"이천시":{"lat":37.2724,"lng":127.4347},"익산시":{"lat":35.9483,"lng":126.9578},"정읍시":{"lat":35.5699,"lng":126.8561},"제천시":{"lat":37.1326,"lng":128.1908},"진주시":{"lat":35.1799,"lng":128.1076},"진해시":{"lat":35.1584,"lng":128.6562},"춘천시":{"lat":37.8814,"lng":127.73},"충주시":{"lat":36.991,"lng":127.9259},"태백시":{"lat":37.1644,"lng":128.9857},"통영시":{"lat":34.8544,"lng":128.4332},"파주시":{"lat":37.7601,"lng":126.78},"포천시":{"lat":37.8946,"lng":127.2004},"하남시":{"lat":37.5396,"lng":127.2149}};
 const REGION_STATS=[{"sido":"경기","w1":2209,"w2":13419,"stores":2459,"p1":42349,"p2":5683,"prize":48033},{"sido":"서울","w1":1836,"w2":11050,"stores":2086,"p1":35793,"p2":4163,"prize":39956},{"sido":"부산","w1":634,"w2":3571,"stores":732,"p1":12126,"p2":1516,"prize":13642},{"sido":"경남","w1":529,"w2":3333,"stores":673,"p1":10351,"p2":1329,"prize":11680},{"sido":"인천","w1":520,"w2":3132,"stores":592,"p1":10259,"p2":1316,"prize":11575},{"sido":"충남","w1":431,"w2":2672,"stores":486,"p1":8661,"p2":1120,"prize":9781},{"sido":"경북","w1":381,"w2":2407,"stores":475,"p1":7691,"p2":993,"prize":8683},{"sido":"대구","w1":360,"w2":2425,"stores":496,"p1":7045,"p2":982,"prize":8028},{"sido":"충북","w1":289,"w2":1737,"stores":340,"p1":5662,"p2":708,"prize":6370},{"sido":"전남","w1":288,"w2":1722,"stores":306,"p1":5627,"p2":760,"prize":6386},{"sido":"전북","w1":281,"w2":1676,"stores":322,"p1":5470,"p2":666,"prize":6136},{"sido":"강원","w1":272,"w2":1616,"stores":316,"p1":5419,"p2":647,"prize":6066},{"sido":"광주","w1":247,"w2":1508,"stores":279,"p1":4905,"p2":638,"prize":5543},{"sido":"대전","w1":247,"w2":1469,"stores":309,"p1":4923,"p2":605,"prize":5528},{"sido":"울산","w1":205,"w2":1228,"stores":243,"p1":3977,"p2":504,"prize":4481},{"sido":"제주","w1":92,"w2":666,"stores":138,"p1":1787,"p2":265,"prize":2052},{"sido":"세종","w1":27,"w2":114,"stores":31,"p1":562,"p2":47,"prize":609}];
 
-const LOTTO_FREQ=[{"num":1,"count":167},{"num":2,"count":152},{"num":3,"count":171},{"num":4,"count":159},{"num":5,"count":153},{"num":6,"count":163},{"num":7,"count":168},{"num":8,"count":156},{"num":9,"count":133},{"num":10,"count":161},{"num":11,"count":164},{"num":12,"count":177},{"num":13,"count":174},{"num":14,"count":170},{"num":15,"count":165},{"num":16,"count":166},{"num":17,"count":169},{"num":18,"count":172},{"num":19,"count":166},{"num":20,"count":168},{"num":21,"count":164},{"num":22,"count":141},{"num":23,"count":147},{"num":24,"count":164},{"num":25,"count":152},{"num":26,"count":164},{"num":27,"count":180},{"num":28,"count":152},{"num":29,"count":153},{"num":30,"count":156},{"num":31,"count":166},{"num":32,"count":142},{"num":33,"count":173},{"num":34,"count":181},{"num":35,"count":161},{"num":36,"count":162},{"num":37,"count":171},{"num":38,"count":169},{"num":39,"count":165},{"num":40,"count":172},{"num":41,"count":148},{"num":42,"count":154},{"num":43,"count":162},{"num":44,"count":160},{"num":45,"count":172}];
+const LOTTO_FREQ=[{"num":1,"count":168},{"num":2,"count":153},{"num":3,"count":171},{"num":4,"count":159},{"num":5,"count":153},{"num":6,"count":163},{"num":7,"count":168},{"num":8,"count":156},{"num":9,"count":133},{"num":10,"count":161},{"num":11,"count":164},{"num":12,"count":177},{"num":13,"count":174},{"num":14,"count":170},{"num":15,"count":166},{"num":16,"count":166},{"num":17,"count":169},{"num":18,"count":172},{"num":19,"count":166},{"num":20,"count":168},{"num":21,"count":164},{"num":22,"count":141},{"num":23,"count":147},{"num":24,"count":164},{"num":25,"count":152},{"num":26,"count":164},{"num":27,"count":180},{"num":28,"count":153},{"num":29,"count":153},{"num":30,"count":156},{"num":31,"count":167},{"num":32,"count":142},{"num":33,"count":173},{"num":34,"count":181},{"num":35,"count":161},{"num":36,"count":162},{"num":37,"count":171},{"num":38,"count":169},{"num":39,"count":166},{"num":40,"count":172},{"num":41,"count":148},{"num":42,"count":154},{"num":43,"count":162},{"num":44,"count":160},{"num":45,"count":173}];
 const LOTTO_TOP20=[{"round":19,"nums":[6,30,38,39,40,43],"bonus":26,"prize1":40722959400,"count1":1,"date":"2003.04.12"},{"round":25,"nums":[2,4,21,26,43,44],"bonus":16,"prize1":24227745300,"count1":2,"date":"2003.05.24"},{"round":20,"nums":[10,14,18,20,23,30],"bonus":41,"prize1":19352212800,"count1":1,"date":"2003.04.19"},{"round":43,"nums":[6,31,35,38,39,44],"bonus":1,"prize1":17749630800,"count1":1,"date":"2003.09.27"},{"round":15,"nums":[3,4,16,30,31,37],"bonus":13,"prize1":17014245000,"count1":1,"date":"2003.03.15"},{"round":36,"nums":[1,10,23,26,28,40],"bonus":31,"prize1":16014475800,"count1":1,"date":"2003.08.09"},{"round":62,"nums":[3,8,15,27,29,35],"bonus":21,"prize1":15817286400,"count1":1,"date":"2004.02.07"},{"round":33,"nums":[4,7,32,33,40,41],"bonus":9,"prize1":14903517600,"count1":1,"date":"2003.07.19"},{"round":82,"nums":[1,2,3,14,27,42],"bonus":39,"prize1":14562494400,"count1":1,"date":"2004.06.26"},{"round":86,"nums":[2,12,37,39,41,45],"bonus":33,"prize1":14252186400,"count1":1,"date":"2004.07.24"},{"round":534,"nums":[10,24,26,29,37,38],"bonus":32,"prize1":14215763250,"count1":1,"date":"2013.02.23"},{"round":80,"nums":[17,18,24,25,26,30],"bonus":1,"prize1":13809540000,"count1":1,"date":"2004.06.12"},{"round":551,"nums":[3,6,20,24,27,44],"bonus":25,"prize1":13526973750,"count1":1,"date":"2013.06.22"},{"round":515,"nums":[2,11,12,15,23,37],"bonus":8,"prize1":13200466875,"count1":1,"date":"2012.10.13"},{"round":427,"nums":[6,7,15,24,28,30],"bonus":21,"prize1":12571445625,"count1":1,"date":"2011.02.05"},{"round":1018,"nums":[3,19,21,25,37,45],"bonus":35,"prize1":12361744688,"count1":2,"date":"2022.06.04"},{"round":414,"nums":[2,14,15,22,23,44],"bonus":43,"prize1":11703832500,"count1":1,"date":"2010.11.06"},{"round":365,"nums":[5,15,21,25,26,30],"bonus":31,"prize1":10697716800,"count1":1,"date":"2009.11.28"},{"round":394,"nums":[1,13,20,22,25,28],"bonus":15,"prize1":10654349100,"count1":1,"date":"2010.06.19"},{"round":391,"nums":[10,11,18,22,28,39],"bonus":30,"prize1":10508749800,"count1":1,"date":"2010.05.29"}];
 
-const LOTTO_RECENT=[{round:1218, nums:[3,28,31,32,42,45], bonus:25, prize1:1714482042, count1:18, date:"2026.04.04"},
+const LOTTO_RECENT=[{round:1219, nums:[1,2,15,28,39,45], bonus:31, prize1:2508232844, count1:12, date:"2026.04.11"},
+{round:1218, nums:[3,28,31,32,42,45], bonus:25, prize1:1714482042, count1:18, date:"2026.04.04"},
 {round:1217, nums:[8,10,15,20,29,31], bonus:41, prize1:2179738018, count1:14, date:"2026.03.28"},
 {round:1216, nums:[3,10,14,15,23,24], bonus:25, prize1:2148654000, count1:14, date:"2026.03.21"},
 {round:1215, nums:[13,15,19,21,44,45], bonus:39, prize1:1998542133, count1:16, date:"2026.03.14"},
@@ -992,7 +1198,18 @@ const LOTTO_RECENT=[{round:1218, nums:[3,28,31,32,42,45], bonus:25, prize1:17144
 ]
 
 // ── 최신 당첨 (실제 당첨번호 연동) ──
-const RECENT_WINS=[{round:1218, sido:"서울", gu:"도봉구", store:"행운복권방", addr:"서울 도봉구 노해로63길 79 우림빌딩 112호", lat:37.6548, lng:127.0466, w1:1, auto:true},
+const RECENT_WINS=[{round:1219, sido:"서울", gu:"마포구", store:"로또복권판매소", addr:"서울 마포구 마포대로 44 진도빌딩앞", lat:37.5441, lng:126.9514, w1:1, auto:true},
+{round:1219, sido:"서울", gu:"송파구", store:"가판대20호", addr:"서울 송파구 송파대로 365 석촌농협앞가판대20호", lat:37.5038, lng:127.1070, w1:1, auto:true},
+{round:1219, sido:"서울", gu:"서초구", store:"오케이상사", addr:"서울 서초구 신반포로 176 센트럴시티내 100호 매점", lat:37.5047, lng:127.0049, w1:1, auto:true},
+{round:1219, sido:"부산", gu:"해운대구", store:"요기어때", addr:"부산 해운대구 우동2로 15", lat:35.1643, lng:129.1601, w1:1, auto:true},
+{round:1219, sido:"인천", gu:"강화군", store:"행복드림로또판매점", addr:"인천 강화군 중앙로 68 1층 101-1호 하나로마트", lat:37.7476, lng:126.4882, w1:1, auto:true},
+{round:1219, sido:"광주", gu:"남구", store:"노다지복권방백운점", addr:"광주 남구 서문대로 827 봉선주월대라수어썸브릿지 상가동 107호", lat:35.1314, lng:126.9003, w1:1, auto:true},
+{round:1219, sido:"경기", gu:"의왕시", store:"순살로복권", addr:"경기 의왕시 내손중앙로 43 서광상가 14호", lat:37.3861, lng:126.9787, w1:1, auto:true},
+{round:1219, sido:"경기", gu:"안산시", store:"아이지에이마트 동명사랑점", addr:"경기 안산시 단원구 선부광장북로 36 113호", lat:37.3235, lng:126.8138, w1:1, auto:true},
+{round:1219, sido:"충남", gu:"천안시", store:"로또명당 풍세산단점", addr:"충남 천안시 동남구 돈마루1길 167-14 2동 101호", lat:36.7433, lng:127.2341, w1:1, auto:true},
+{round:1219, sido:"경북", gu:"포항시", store:"성심상회", addr:"경북 포항시 북구 불종로 78", lat:36.0329, lng:129.3650, w1:1, auto:false},
+{round:1219, sido:"제주", gu:"서귀포시", store:"천하명당복권", addr:"제주 서귀포시 동문로 38", lat:33.2496, lng:126.5600, w1:1, auto:false},
+{round:1218, sido:"서울", gu:"도봉구", store:"행운복권방", addr:"서울 도봉구 노해로63길 79 우림빌딩 112호", lat:37.6548, lng:127.0466, w1:1, auto:true},
 {round:1218, sido:"서울", gu:"은평구", store:"꿈이있는 로또점", addr:"서울 은평구 통일로 699 1층", lat:37.6103, lng:126.9323, w1:1, auto:true},
 {round:1218, sido:"서울", gu:"동대문구", store:"웨이스탑(전농점)", addr:"서울 동대문구 전농로 129", lat:37.5797, lng:127.0447, w1:1, auto:false},
 {round:1218, sido:"부산", gu:"부산진구", store:"돈벼락맞는곳 부산서면점", addr:"부산 부산진구 서전로 18-1 1층", lat:35.1581, lng:129.0583, w1:1, auto:true},
@@ -1267,24 +1484,17 @@ function closeBest9Modal(){
 
 // ── 신규 명당 데이터 (매주 업데이트) ──
 const NEW_STORES = [
-  {n:"행운복권방",sido:"서울",gu:"도봉구",addr:"서울 도봉구 노해로63길 79 우림빌딩 112호",t:37.6548,g:127.0466,w:1,w2:0,lv:"mild",round:1218},
-  {n:"꿈이있는 로또점",sido:"서울",gu:"은평구",addr:"서울 은평구 통일로 699 1층",t:37.6103,g:126.9323,w:1,w2:0,lv:"mild",round:1218},
-  {n:"웨이스탑(전농점)",sido:"서울",gu:"동대문구",addr:"서울 동대문구 전농로 129",t:37.5797,g:127.0447,w:1,w2:0,lv:"mild",round:1218},
-  {n:"돈벼락맞는곳 부산서면점",sido:"부산",gu:"부산진구",addr:"부산 부산진구 서전로 18-1 1층",t:35.1581,g:129.0583,w:1,w2:0,lv:"mild",round:1218},
-  {n:"돈벼락복권방",sido:"대구",gu:"북구",addr:"대구 북구 동변로 82-1 1층",t:35.9205,g:128.6039,w:1,w2:0,lv:"mild",round:1218},
-  {n:"복권명당(서부점)",sido:"대구",gu:"달서구",addr:"대구 달서구 월배로 452",t:35.8332,g:128.5507,w:1,w2:0,lv:"mild",round:1218},
-  {n:"골든벨 복권판매점",sido:"인천",gu:"미추홀구",addr:"인천 미추홀구 경인로 372 1층",t:37.4614,g:126.6453,w:1,w2:0,lv:"mild",round:1218},
-  {n:"다들복권방",sido:"경기",gu:"부천시",addr:"경기 부천시 고리울로 51 고강빌딩1층",t:37.5274,g:126.8216,w:1,w2:0,lv:"mild",round:1218},
-  {n:"로또복권편의점",sido:"경기",gu:"수원시",addr:"경기 수원시 권선구 세류로 51 1층",t:37.2554,g:127.0114,w:1,w2:0,lv:"mild",round:1218},
-  {n:"오남 로또택배",sido:"경기",gu:"남양주시",addr:"경기 남양주시 진건오남로 814 B동 1층 5호",t:37.6917,g:127.2141,w:1,w2:0,lv:"mild",round:1218},
-  {n:"황금복권판매점",sido:"경기",gu:"양주시",addr:"경기 양주시 부흥로 994",t:37.7929,g:126.9929,w:1,w2:0,lv:"mild",round:1218},
-  {n:"지바",sido:"경기",gu:"광명시",addr:"경기 광명시 금당로 36 1층 118호",t:37.4787,g:126.8641,w:1,w2:0,lv:"mild",round:1218},
-  {n:"복권맛집",sido:"경기",gu:"포천시",addr:"경기 포천시 부흥로 409",t:37.8993,g:127.2054,w:1,w2:0,lv:"mild",round:1218},
-  {n:"로또복권방",sido:"경기",gu:"성남시",addr:"경기 성남시 분당구 대왕판교로 660 1층 136호",t:37.3964,g:127.1115,w:1,w2:0,lv:"mild",round:1218},
-  {n:"대관령복권방",sido:"강원",gu:"평창군",addr:"강원 평창군 대관령로 74-4 1층 B호",t:37.6872,g:128.7181,w:1,w2:0,lv:"mild",round:1218},
-  {n:"복권나라",sido:"전북",gu:"군산시",addr:"전북 군산시 번영로 891",t:35.9697,g:126.7190,w:1,w2:0,lv:"mild",round:1218},
-  {n:"필승로또복권판매점",sido:"경북",gu:"상주시",addr:"경북 상주시 왕산로 349 1층",t:36.4189,g:128.1561,w:1,w2:0,lv:"mild",round:1218},
-  {n:"복권판매점",sido:"경남",gu:"고성군",addr:"경남 고성군 남포로 62 2동 101호",t:34.9729,g:128.3225,w:1,w2:0,lv:"mild",round:1218},
+  {n:"로또복권판매소",sido:"서울",gu:"마포구",addr:"서울 마포구 마포대로 44 진도빌딩앞",t:37.5441,g:126.9514,w:1,w2:0,lv:"mild",round:1219},
+  {n:"가판대20호",sido:"서울",gu:"송파구",addr:"서울 송파구 송파대로 365 석촌농협앞가판대20호",t:37.5038,g:127.1070,w:1,w2:0,lv:"mild",round:1219},
+  {n:"오케이상사",sido:"서울",gu:"서초구",addr:"서울 서초구 신반포로 176 센트럴시티내 100호 매점",t:37.5047,g:127.0049,w:1,w2:0,lv:"mild",round:1219},
+  {n:"요기어때",sido:"부산",gu:"해운대구",addr:"부산 해운대구 우동2로 15",t:35.1643,g:129.1601,w:1,w2:0,lv:"mild",round:1219},
+  {n:"행복드림로또판매점",sido:"인천",gu:"강화군",addr:"인천 강화군 중앙로 68 1층 101-1호 하나로마트",t:37.7476,g:126.4882,w:1,w2:0,lv:"mild",round:1219},
+  {n:"노다지복권방백운점",sido:"광주",gu:"남구",addr:"광주 남구 서문대로 827 봉선주월대라수어썸브릿지 상가동 107호",t:35.1314,g:126.9003,w:1,w2:0,lv:"mild",round:1219},
+  {n:"순살로복권",sido:"경기",gu:"의왕시",addr:"경기 의왕시 내손중앙로 43 서광상가 14호",t:37.3861,g:126.9787,w:1,w2:0,lv:"mild",round:1219},
+  {n:"아이지에이마트 동명사랑점",sido:"경기",gu:"안산시",addr:"경기 안산시 단원구 선부광장북로 36 113호",t:37.3235,g:126.8138,w:1,w2:0,lv:"mild",round:1219},
+  {n:"로또명당 풍세산단점",sido:"충남",gu:"천안시",addr:"충남 천안시 동남구 돈마루1길 167-14 2동 101호",t:36.7433,g:127.2341,w:1,w2:0,lv:"mild",round:1219},
+  {n:"성심상회",sido:"경북",gu:"포항시",addr:"경북 포항시 북구 불종로 78",t:36.0329,g:129.3650,w:1,w2:0,lv:"mild",round:1219},
+  {n:"천하명당복권",sido:"제주",gu:"서귀포시",addr:"제주 서귀포시 동문로 38",t:33.2496,g:126.5600,w:1,w2:0,lv:"mild",round:1219},
 ];
 
 function renderNewTab(){
@@ -2605,5 +2815,132 @@ window.onload=()=>{initMap();};
 </script>
 
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
+// ══════════════════════════════════════
+// 로또기운 부적 기능
+// ══════════════════════════════════════
+function openCharmModal(){
+  document.getElementById('charmModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  // 이전 상태 초기화
+  document.getElementById('charmStep1').style.display = '';
+  document.getElementById('charmStep2').classList.remove('visible');
+  document.getElementById('charmNickInput').value = '';
+}
+
+function closeCharmModal(){
+  document.getElementById('charmModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function resetCharm(){
+  document.getElementById('charmStep1').style.display = '';
+  document.getElementById('charmStep2').classList.remove('visible');
+  document.getElementById('charmNickInput').value = '';
+}
+
+function makeCharm(){
+  const nick = document.getElementById('charmNickInput').value.trim();
+  if(!nick){ document.getElementById('charmNickInput').focus(); return; }
+
+  // 위치 필요
+  navigator.geolocation?.getCurrentPosition(pos=>{
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    buildCharmCard(nick, lat, lng);
+  }, ()=>{
+    // 위치 거부 시 — 위치 없이 기본 메시지로
+    buildCharmCard(nick, null, null);
+  });
+}
+
+function buildCharmCard(nick, lat, lng){
+  // 주변 명당 top3 계산
+  let top3 = [];
+  if(lat && lng){
+    top3 = W1_STORES
+      .map(s=>({...s, dist: getDist(lat, lng, s.t, s.g)}))
+      .filter(s => s.dist <= 5)
+      .sort((a,b) => b.w - a.w || a.dist - b.dist)
+      .slice(0,3);
+  }
+  if(!top3.length){
+    // 위치 없거나 주변 없으면 전국 top3
+    top3 = [...W1_STORES].sort((a,b)=>b.w-a.w).slice(0,3);
+  }
+
+  const top1Win = top3[0] ? top3[0].w : 0;
+  const medals = ['🥇','🥈','🥉'];
+
+  // 문구 업데이트
+  document.getElementById('charmCopy').innerHTML =
+    `지금 ${nick} 님은<br>로또 1등이 ${top1Win}번이나 터진<br>명당 근처에 있습니다 🍀`;
+
+  // top3 리스트
+  document.getElementById('charmTopList').innerHTML = top3.map((s,i)=>`
+    <div class="cc-item">
+      <div class="cc-item-left">
+        <div class="cc-rank">${medals[i]}</div>
+        <div class="cc-store">${s.n}</div>
+      </div>
+      <div class="cc-count">1등 ${s.w}회</div>
+    </div>
+  `).join('');
+
+  // 화면 전환
+  document.getElementById('charmStep1').style.display = 'none';
+  document.getElementById('charmStep2').classList.add('visible');
+}
+
+async function saveCharmImage(){
+  const card = document.getElementById('charmCard');
+  try {
+    const canvas = await html2canvas(card, {
+      backgroundColor: '#130E00',
+      scale: 2,
+      useCORS: true,
+      logging: false
+    });
+    const link = document.createElement('a');
+    link.download = '로또기운부적.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  } catch(e) {
+    alert('이미지 저장에 실패했어요. 다시 시도해주세요.');
+  }
+}
+
+async function shareCharmKakao(){
+  const card = document.getElementById('charmCard');
+  try {
+    const canvas = await html2canvas(card, {
+      backgroundColor: '#130E00',
+      scale: 2,
+      useCORS: true,
+      logging: false
+    });
+    canvas.toBlob(async blob=>{
+      const file = new File([blob], '로또기운부적.png', {type:'image/png'});
+      if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+        await navigator.share({
+          files: [file],
+          title: '로또기운 부적',
+          text: '로또명당지도에서 내 주변 명당을 확인해보세요!'
+        });
+      } else {
+        // fallback: 이미지 저장
+        const link = document.createElement('a');
+        link.download = '로또기운부적.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        alert('이미지를 저장했어요! 카카오톡에서 직접 공유해주세요 🍀');
+      }
+    }, 'image/png');
+  } catch(e) {
+    alert('공유에 실패했어요. 이미지 저장을 이용해주세요.');
+  }
+}
+
+</script>
 </body>
 </html>
