@@ -419,9 +419,26 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     width:100%; max-width:600px;
     animation:fadeUp 0.3s ease;
   }
-  .install-tabs { display:flex; gap:6px; margin:16px 0; background:rgba(255,255,255,0.05); border-radius:12px; padding:4px; }
-  .install-tab-btn { flex:1; padding:10px 0; border-radius:9px; border:none; cursor:pointer; font-size:14px; font-weight:700; font-family:'Noto Sans KR',sans-serif; background:transparent; color:#666; transition:all 0.2s; }
-  .install-tab-btn.active { background:linear-gradient(135deg,#FFB800,#FF6B00); color:#000; }
+  .install-tabs { display:flex; gap:8px; margin:16px 0; border-radius:12px; padding:0; }
+  .install-tab-btn {
+    flex:1; padding:11px 0; border-radius:10px;
+    border:2px solid #C9960A;
+    cursor:pointer; font-size:14px; font-weight:700;
+    font-family:'Noto Sans KR',sans-serif;
+    background:transparent; color:#C9960A;
+    transition:all 0.2s;
+  }
+  .install-tab-btn.active {
+    background:linear-gradient(135deg,#FFB800,#FF6B00);
+    color:#fff; border:2px solid #FF6B00;
+  }
+  [data-theme="light"] .install-tab-btn {
+    border:2px solid #C9960A; color:#C9960A; background:#fff;
+  }
+  [data-theme="light"] .install-tab-btn.active {
+    background:linear-gradient(135deg,#FFB800,#FF6B00);
+    color:#fff; border:2px solid #FF6B00;
+  }
   .install-tab-content { display:none; }
   .install-tab-content.active { display:block; }
   .install-step {
@@ -1079,10 +1096,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 .charm-share-btn.save  { background:linear-gradient(135deg,#C9960A,#F0B429); color:#fff; }
 .charm-share-btn.retry {
   flex:0 0 46px; padding:12px 0;
-  background:var(--bg-card, rgba(255,255,255,0.08));
-  border:1px solid var(--border, rgba(255,255,255,0.15));
-  color:var(--text-secondary, #aaa);
-  border-radius:10px; font-size:16px; font-weight:600;
+  background:rgba(201,150,10,0.15);
+  border:1px solid rgba(201,150,10,0.6);
+  color:#F0B429;
+  border-radius:10px; font-size:16px; font-weight:700;
   cursor:pointer; font-family:inherit;
   text-align:center;
 }
@@ -1095,6 +1112,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div id="charmStep1">
       <div class="charm-step1-title">🍀 로또기운 부적 만들기</div>
       <div class="charm-step1-sub">별명을 입력하면 주변 명당 기운을 담은 부적을 만들어드려요</div>
+      <div style="background:rgba(201,150,10,0.1);border:0.5px solid rgba(201,150,10,0.3);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:13px;color:rgba(255,255,255,0.75);line-height:1.6;">
+        📍 로또기운 부적은 내 주변 명당을 찾기 위해 위치 정보를 요청해요.<br>지금 만들어 볼까요?
+      </div>
       <input id="charmNickInput" type="text" onkeydown="if(event.key==='Enter')makeCharm()" placeholder="예) 황금손, 행운아, 철수" maxlength="10" />
       <div class="charm-step1-btns">
         <button class="charm-cancel-btn" onclick="closeCharmModal()">취소</button>
