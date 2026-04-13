@@ -1109,12 +1109,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 .charm-share-btn.save  { background:linear-gradient(135deg,#C9960A,#F0B429); color:#fff; }
 .charm-share-btn.retry {
   flex:0 0 46px; padding:12px 0;
-  background:var(--bg-card);
-  border:1px solid var(--border);
-  color:var(--text-secondary);
+  background:#3a3226;
+  border:1px solid rgba(255,255,255,0.15);
+  color:rgba(255,255,255,0.7);
   border-radius:10px; font-size:16px; font-weight:700;
   cursor:pointer; font-family:inherit;
   text-align:center;
+}
+[data-theme="light"] .charm-share-btn.retry {
+  background:#e8e0d0;
+  border:1px solid rgba(0,0,0,0.15);
+  color:rgba(0,0,0,0.5);
 }
 </style>
 
@@ -1124,7 +1129,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- Step1: 별명 입력 -->
     <div id="charmStep1">
       <div class="charm-step1-title">🍀 로또기운 부적 만들기</div>
-      <div class="charm-step1-sub">별명을 입력하면 내 3km 주변의 명당 기운을 담은 부적을 만들어드려요</div>
+      <div class="charm-step1-sub">별명을 입력하면 내 3km 주변의 명당 기운을 담은 부적을 만들어드려요!</div>
       <input id="charmNickInput" type="text" onkeydown="if(event.key==='Enter')makeCharm()" placeholder="예) 황금손, 행운아, 나재수" maxlength="10" />
       <div style="background:rgba(201,150,10,0.12);border:0.5px solid rgba(201,150,10,0.4);border-radius:8px;padding:9px 12px;margin-bottom:14px;font-size:12px;color:#8B5E00;line-height:1.5;">📍 로또기운 부적은 내 주변 명당을 찾기 위해 위치 정보를 요청해요. 지금 만들어 볼까요?</div>
       <div class="charm-step1-btns">
@@ -2936,7 +2941,7 @@ async function saveCharmImage(){
 
 async function shareCharmKakao(){
   var copyEl = document.getElementById('charmCopy');
-  var copyText = copyEl ? copyEl.innerText.replace(/[\r\n]+/g,' ').trim() : '로또기운 부적';
+  var copyText = copyEl ? copyEl.innerText.replace(/[\r\n]+/g,' ').replace('🍀','').trim() : '로또기운 부적';
 
   if(window.Kakao && !Kakao.isInitialized()){
     Kakao.init('0f283217abb610bf9916ff579ce9cf9e');
@@ -2945,8 +2950,8 @@ async function shareCharmKakao(){
     Kakao.Share.sendDefault({
       objectType: 'feed',
       content: {
-        title: '🍀 로또당첨 기운 🍀',
-        description: copyText + ' 지금 내 근처 명당을 찾아보세요!',
+        title: '🍀인생역전찬스🍀',
+        description: copyText + '!',
         imageUrl: 'https://www.lotto-map.kr/og-image.png',
         imageWidth: 1200,
         imageHeight: 630,
