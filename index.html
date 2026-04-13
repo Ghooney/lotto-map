@@ -741,7 +741,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   <meta property="og:title" content="로또명당지도 - 전국 1등 명당 판매점 지도"/>
   <meta property="og:description" content="전국 로또 1등 당첨 명당 판매점을 지도로 찾아보세요. 역대 당첨 데이터 기반 전국 명당 랭킹."/>
   <meta property="og:image" content="https://www.lotto-map.kr/og-image.png"/>
-  <meta property="og:image:width" content="1200"/>
+  <meta property="og:image:width" content="630"/>
   <meta property="og:image:height" content="630"/>
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image"/>
@@ -2923,38 +2923,8 @@ async function saveCharmImage(){
 
 async function shareCharmKakao(){
   var copyEl = document.getElementById('charmCopy');
-  // 텍스트 한 줄로 (줄바꿈 제거)
-  var copyText = copyEl ? copyEl.innerText.replace(/\s*\n\s*/g, ' ').trim() : '로또기운 부적';
-  var shareText = copyText + ' www.lotto-map.kr';
+  var copyText = copyEl ? copyEl.innerText.replace(/[\r\n]+/g,' ').trim() : '로또기운 부적';
 
-  var card = document.getElementById('charmCard');
-  try {
-    // 부적 카드를 이미지로 변환
-    var canvas = await html2canvas(card, {backgroundColor:'#130E00', scale:2, useCORS:true, logging:false});
-    canvas.toBlob(async function(blob){
-      var file = new File([blob], '로또기운부적.png', {type:'image/png'});
-      // Web Share API로 이미지 파일 직접 공유 (카톡에 이미지 그대로 전송)
-      if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
-        try {
-          await navigator.share({
-            files: [file],
-            title: '🍀 로또기운 부적',
-            text: shareText
-          });
-        } catch(e){
-          if(e.name !== 'AbortError') fallbackKakaoShare(copyText);
-        }
-      } else {
-        // Web Share 미지원 → 카카오 SDK 피드형
-        fallbackKakaoShare(copyText);
-      }
-    }, 'image/png');
-  } catch(e){
-    fallbackKakaoShare(copyText);
-  }
-}
-
-function fallbackKakaoShare(copyText){
   if(window.Kakao && !Kakao.isInitialized()){
     Kakao.init('0f283217abb610bf9916ff579ce9cf9e');
   }
@@ -2963,9 +2933,9 @@ function fallbackKakaoShare(copyText){
       objectType: 'feed',
       content: {
         title: '🍀 로또기운 부적',
-        description: copyText + ' www.lotto-map.kr',
+        description: copyText + ' 지금 내 근처 명당을 찾아보세요!',
         imageUrl: 'https://www.lotto-map.kr/og-image.png',
-        imageWidth: 1200,
+        imageWidth: 630,
         imageHeight: 630,
         link: {
           mobileWebUrl: 'https://www.lotto-map.kr',
