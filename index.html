@@ -1218,8 +1218,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
     </div>
     <button class="btn-main" onclick="openNearbyModal()" style="font-size:14px">📍 내 주변 명당</button>
-    <button class="btn-bell" onclick="openLuckyModal()" title="행운번호 뽑기">🍀</button>
     <button class="btn-bell" onclick="openCharmModal()" title="로또기운 부적 만들기" style="font-size:18px">🧧</button>
+    <button class="btn-bell" onclick="openLuckyModal()" title="행운번호 뽑기">🍀</button>
     <button class="btn-bell" onclick="openInstallModal()" title="홈 화면에 추가">➕</button>
   </div>
 </div>
@@ -2750,12 +2750,23 @@ window.onload=()=>{initMap();};
   <div class="install-modal" id="installModal">
     <div class="install-sheet">
       <!-- 헤더 -->
-      <div style="display:flex;justify-content:space-between;align-items:center">
+      <div class="modal-mini-header">
+        <div class="modal-mini-logo" onclick="closeInstallModal();goHome()">
+          <div class="modal-mini-logo-icon">🍀</div>
+          <div class="modal-mini-logo-text">로또명당지도</div>
+        </div>
+        <div class="modal-mini-tabs">
+          <button class="modal-mini-tab" onclick="closeInstallModal();switchTab('map',document.querySelectorAll('.tab-btn')[0])">📍 지도</button>
+          <button class="modal-mini-tab" onclick="closeInstallModal();document.querySelectorAll('.tab-btn').forEach(b=>{if(b.textContent.includes('명당'))b.click()})">🏆 명당</button>
+          <button class="modal-mini-tab" onclick="closeInstallModal();document.querySelectorAll('.tab-btn').forEach(b=>{if(b.textContent.includes('최신'))b.click()})">⚡ 최신</button>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
         <div>
-          <div style="font-size:18px;font-weight:900;color:#FFB800">🔖 홈 화면에 추가하기</div>
+          <div style="font-size:17px;font-weight:900;color:var(--text-primary)">🔖 홈 화면에 추가하기</div>
           <div style="font-size:12px;color:#888;margin-top:3px">앱처럼 바로 실행할 수 있어요!</div>
         </div>
-        <div onclick="closeInstallModal()" style="font-size:20px;cursor:pointer;color:#666;padding:4px 8px">✕</div>
+        <div onclick="closeInstallModal()" style="font-size:20px;cursor:pointer;color:#555;padding:4px 8px">✕</div>
       </div>
 
       <!-- OS 탭 -->
