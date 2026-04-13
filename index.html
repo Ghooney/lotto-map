@@ -1068,14 +1068,27 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   font-size:10px; color:rgba(255,255,255,0.35);
   margin-bottom:9px; letter-spacing:0.06em;
 }
-.cc-item {
-  display:flex; align-items:center;
-  justify-content:space-between;
-  margin-bottom:9px;
+/* TOP3 카드형 */
+#charmTopList {
+  display:flex; gap:7px;
 }
-.cc-item-left { display:flex; align-items:center; gap:7px; }
-.cc-rank { font-size:13px; width:18px; }
-.cc-store { font-size:12px; color:rgba(255,255,255,0.85); }
+.cc-item {
+  flex:1; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  background:rgba(201,150,10,0.08);
+  border:0.5px solid rgba(201,150,10,0.3);
+  border-radius:10px;
+  padding:10px 6px 10px;
+  gap:5px; min-width:0;
+}
+.cc-rank { font-size:22px; line-height:1; }
+.cc-store {
+  font-size:10px; color:rgba(255,255,255,0.85);
+  font-weight:600; text-align:center;
+  word-break:keep-all; line-height:1.3;
+  display:-webkit-box; -webkit-line-clamp:2;
+  -webkit-box-orient:vertical; overflow:hidden;
+}
 .cc-count { font-size:11px; color:#F0B429; font-weight:700; }
 .cc-footer {
   padding:11px 16px 14px;
@@ -1111,9 +1124,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- Step1: 별명 입력 -->
     <div id="charmStep1">
       <div class="charm-step1-title">🍀 로또기운 부적 만들기</div>
-      <div class="charm-step1-sub">별명을 입력하면 주변 명당 기운을 담은 부적을 만들어드려요</div>
+      <div class="charm-step1-sub">별명을 입력하면 내 3km 주변의 명당 기운을 담은 부적을 만들어드려요</div>
+      <input id="charmNickInput" type="text" onkeydown="if(event.key==='Enter')makeCharm()" placeholder="예) 황금손, 행운아, 나재수" maxlength="10" />
       <div style="background:rgba(201,150,10,0.12);border:0.5px solid rgba(201,150,10,0.4);border-radius:8px;padding:9px 12px;margin-bottom:14px;font-size:12px;color:#8B5E00;line-height:1.5;">📍 로또기운 부적은 내 주변 명당을 찾기 위해 위치 정보를 요청해요. 지금 만들어 볼까요?</div>
-      <input id="charmNickInput" type="text" onkeydown="if(event.key==='Enter')makeCharm()" placeholder="예) 황금손, 행운아, 철수" maxlength="10" />
       <div class="charm-step1-btns">
         <button class="charm-cancel-btn" onclick="closeCharmModal()">취소</button>
         <button class="charm-make-btn" onclick="makeCharm()">부적 만들기 🍀</button>
@@ -1135,7 +1148,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             명당 근처에 있습니다 🍀
           </div>
           <div class="cc-divider"></div>
-          <div class="cc-list-title">내 주변 명당 TOP 3</div>
+          <div class="cc-list-title">🏆 내 주변 명당 TOP 3</div>
           <div id="charmTopList"></div>
         </div>
         <div class="cc-footer">
@@ -2890,7 +2903,7 @@ function buildCharmCard(nick, lat, lng){
   if(lat && lng){
     top3 = W1_STORES
       .map(function(s){ return Object.assign({}, s, {dist: getDist(lat, lng, s.t, s.g)}); })
-      .filter(function(s){ return s.dist <= 5; })
+      .filter(function(s){ return s.dist <= 3; })
       .sort(function(a,b){ return b.w - a.w || a.dist - b.dist; })
       .slice(0,3);
   }
@@ -2902,7 +2915,7 @@ function buildCharmCard(nick, lat, lng){
   document.getElementById('charmCopy').innerHTML =
     '지금 ' + nick + ' 님은<br>로또 1등이 ' + top1Win + '번이나 터진<br>명당 근처에 있습니다 🍀';
   document.getElementById('charmTopList').innerHTML = top3.map(function(s, i){
-    return '<div class="cc-item"><div class="cc-item-left"><div class="cc-rank">' + medals[i] + '</div><div class="cc-store">' + s.n + '</div></div><div class="cc-count">1등 ' + s.w + '회</div></div>';
+    return '<div class="cc-item"><div class="cc-rank">' + medals[i] + '</div><div class="cc-store">' + s.n + '</div><div class="cc-count">1등 ' + s.w + '회</div></div>';
   }).join('');
   document.getElementById('charmStep1').style.display = 'none';
   document.getElementById('charmStep2').classList.add('visible');
