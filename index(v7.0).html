@@ -1204,7 +1204,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   background: #1a0e00;
 }
 .prize-hero-amount {
-  font-size: 36px;
+  font-size: 30px;
   font-weight: 900;
   color: #F0B429;
   letter-spacing: -0.5px;
@@ -1218,7 +1218,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   font-weight: 400;
 }
 .prize-hero-cta {
-  font-size: 16px;
+  font-size: 13px;
   color: #F0B429;
   margin-top: 0;
   margin-bottom: 4px;
@@ -3251,44 +3251,48 @@ async function shareCharmKakao(){
   // PC 하단 바
   var pcAmount = document.getElementById('pcPrizeAmount');
   var pcCount = document.getElementById('pcPrizeCount');
-  if(pcAmount) pcAmount.textContent = prize.toLocaleString('ko-KR') + '원';
-  if(pcCount) pcCount.textContent = '당첨자 수 ' + count + '명 · ' + latest.round + '회차';
-  if(el2) el2.textContent = '당첨자 수 ' + count + '명 · ' + latest.round + '회차';
-  if(!el) return;
+  if(pcCount) pcCount.textContent = '당첨자 수 ' + count + '명 · 제 ' + latest.round + '회차';
+  if(el2) el2.textContent = '당첨자 수 ' + count + '명 · 제 ' + latest.round + '회차';
 
-  // 카운터 애니메이션
+  // 카운터 애니메이션 공통
   var duration = 1800;
   var startTime = null;
-  var startVal = 0;
 
   function easeOutExpo(t) {
     return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
   }
 
-  function animateCount(timestamp) {
-    if(!startTime) startTime = timestamp;
-    var elapsed = timestamp - startTime;
+  function animateEl(targetEl, timestamp) {
+    if(!targetEl._startTime) targetEl._startTime = timestamp;
+    var elapsed = timestamp - targetEl._startTime;
     var progress = Math.min(elapsed / duration, 1);
     var current = Math.floor(easeOutExpo(progress) * prize);
-    el.textContent = current.toLocaleString('ko-KR') + '원';
+    targetEl.textContent = current.toLocaleString('ko-KR') + '원';
     if(progress < 1) {
-      requestAnimationFrame(animateCount);
+      requestAnimationFrame(function(ts){ animateEl(targetEl, ts); });
     } else {
-      el.textContent = prize.toLocaleString('ko-KR') + '원';
+      targetEl.textContent = prize.toLocaleString('ko-KR') + '원';
     }
   }
 
-  // 화면에 보일 때 시작 (IntersectionObserver)
-  if('IntersectionObserver' in window) {
-    var observer = new IntersectionObserver(function(entries) {
-      if(entries[0].isIntersecting) {
-        requestAnimationFrame(animateCount);
-        observer.disconnect();
-      }
-    }, { threshold: 0.3 });
-    observer.observe(el);
-  } else {
-    requestAnimationFrame(animateCount);
+  // 모바일 히어로 — 화면 진입 시 시작
+  if(el) {
+    if('IntersectionObserver' in window) {
+      var observer = new IntersectionObserver(function(entries) {
+        if(entries[0].isIntersecting) {
+          requestAnimationFrame(function(ts){ animateEl(el, ts); });
+          observer.disconnect();
+        }
+      }, { threshold: 0.3 });
+      observer.observe(el);
+    } else {
+      requestAnimationFrame(function(ts){ animateEl(el, ts); });
+    }
+  }
+
+  // PC 하단바 — 페이지 로드 후 바로 시작
+  if(pcAmount) {
+    requestAnimationFrame(function(ts){ animateEl(pcAmount, ts); });
   }
 })();
 
