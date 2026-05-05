@@ -714,18 +714,27 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     /* PC에서 히어로 섹션 숨김 → adSlot1 위 한 줄로 표시 */
     .prize-hero { display:none !important; }
 
+    /* PC 히어로 + 광고 그리드 (map-tab-grid와 동일 비율) */
+    .pc-hero-ad-grid {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 20px;
+      margin-bottom: 16px;
+      align-items: stretch;
+    }
+
     /* PC 히어로 한 줄 배너 */
     .pc-hero-bar {
-      display:flex !important; align-items:center; justify-content:space-between;
-      gap:16px; padding:12px 20px; margin-bottom:0;
+      display:flex !important; align-items:center; justify-content:center;
+      gap:4px; padding:16px 24px; margin-bottom:0;
       background:#1a0e00; border:2px solid #C9960A; border-radius:12px;
-      cursor:pointer; box-sizing:border-box;
+      cursor:pointer; box-sizing:border-box; text-align:center;
     }
     .pc-hero-bar:hover { border-color:#F0B429; }
     .pc-hero-left { display:flex; align-items:baseline; gap:10px; flex-shrink:0; }
-    .pc-hero-amount { font-size:22px; font-weight:900; color:#F0B429; letter-spacing:-0.5px; font-variant-numeric:tabular-nums; }
+    .pc-hero-amount { font-size:32px; font-weight:900; color:#F0B429; letter-spacing:-0.5px; font-variant-numeric:tabular-nums; }
     .pc-hero-count { font-size:12px; color:rgba(255,255,255,0.6); }
-    .pc-hero-cta { font-size:13px; font-weight:700; color:#C9960A; white-space:nowrap; flex-shrink:0; }
+    .pc-hero-cta { font-size:13px; font-weight:700; color:#C9960A; white-space:nowrap; margin-bottom:6px; }
 
     /* 하단바 당첨금 아이템 */
     .pc-prize-item {
@@ -767,7 +776,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   /* 모바일에서는 pc-stat-bar, pc-prize-item 숨김 */
   .pc-stat-bar { display:none; }
   .pc-prize-item { display:none; }
-  .pc-hero-bar { display:none !important; }
+  .pc-hero-bar { display:none; }
 
     
     
@@ -863,14 +872,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
     </div>
 
-    <div class="pc-hero-bar" id="pcHeroBar" onclick="openCheckModal()">
-      <div class="pc-hero-left">
-        <span class="pc-hero-amount" id="pcPrizeAmount">-</span>
-        <span class="pc-hero-count" id="pcPrizeCount">-</span>
+    <div class="pc-hero-ad-grid">
+      <div class="pc-hero-bar" id="pcHeroBar" onclick="openCheckModal()">
+        <div>
+          <div class="pc-hero-cta">클릭하고 이번주 당첨 확인하기! ♣</div>
+          <div class="pc-hero-left">
+            <span class="pc-hero-amount" id="pcPrizeAmount">-</span>
+            <span class="pc-hero-count" id="pcPrizeCount">-</span>
+          </div>
+        </div>
       </div>
-      <div class="pc-hero-cta">클릭하고 이번주 당첨 확인하기! ♣</div>
+      <div id="adSlot1" style="box-sizing:border-box;margin:0;"></div>
     </div>
-    <div id="adSlot1" style="box-sizing:border-box;"></div>
     <div class="map-tab-grid">
       <div class="map-wrap" id="mapWrap">
         <div class="map-title" id="mapTitle">📍 전국 지역별 1등 당첨 현황 — 지역을 클릭해보세요!</div>
@@ -1196,7 +1209,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   border-radius:8px; padding:8px 12px; margin-bottom:14px; line-height:1.5;
 }
 .check-guide b { color:#F0B429; font-weight:700; }
-.check-section-label { font-size:10px; color:rgba(255,255,255,0.35); text-align:center; margin-bottom:8px; letter-spacing:0.06em; }
+.check-section-label { font-size:13px; font-weight:700; color:rgba(255,255,255,0.75); text-align:center; margin-bottom:8px; letter-spacing:0.02em; }
 .check-input-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:7px; margin-bottom:14px; }
 .check-num-input {
   width:100%; aspect-ratio:1; border-radius:50%;
@@ -1263,7 +1276,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 }
 /* PC: 슬롯별 max-width를 해당 탭 컨텐츠와 동일하게 */
 @media(min-width:768px){
-  #adSlot1 { max-width: 100%; margin: 10px 0; }
+  #adSlot1 { max-width: 100%; margin: 0; }
   #adSlot2 { max-width: 960px; margin: 10px auto; }
   #adSlot3 { max-width: 960px; margin: 10px auto; }
 }
@@ -1320,9 +1333,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <div id="checkModal" onclick="if(event.target===this)closeCheckModal()">
   <div class="check-sheet">
-    <div class="check-title">🎱 내 번호 당첨 확인</div>
+    <div class="check-title">🎱 내 로또 당첨 확인</div>
     <div class="check-sub" id="checkSubTitle">제 1222회차 · 2026.05.02 추첨</div>
-    <div class="check-section-label">내 번호 6개 입력</div>
+    <div class="check-section-label">내 번호 6개를 입력하세요!</div>
     <div class="check-input-grid">
       <input class="check-num-input" type="number" min="1" max="45" placeholder="?" id="cn1">
       <input class="check-num-input" type="number" min="1" max="45" placeholder="?" id="cn2">
@@ -1332,7 +1345,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <input class="check-num-input" type="number" min="1" max="45" placeholder="?" id="cn6">
     </div>
     <hr class="check-divider">
-    <div class="check-section-label" id="checkBallLabel">당첨번호 (확인 후 공개)</div>
+    <div class="check-section-label" id="checkBallLabel">이번주 당첨번호</div>
     <div class="check-balls-row">
       <div class="check-ball" id="cb0">?</div>
       <div class="check-ball" id="cb1">?</div>
@@ -1349,7 +1362,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="check-result-sub" id="checkResultSub"></div>
       </div>
     </div>
-    <button class="check-btn check-btn-go" id="checkBtnGo" onclick="doLottoCheck()">당첨번호 공개 🍀</button>
+    <button class="check-btn check-btn-go" id="checkBtnGo" onclick="doLottoCheck()">당첨 확인하기 🍀</button>
     <button class="check-btn check-btn-reset" id="checkBtnReset" onclick="resetLottoCheck()">다시 확인하기</button>
     <button class="check-btn-close" onclick="closeCheckModal()">닫기 ✕</button>
   </div>
@@ -3266,7 +3279,7 @@ function openCheckModal() {
   var rm = document.getElementById('checkResultMain');
   var rs = document.getElementById('checkResultSub');
   if(rm) { rm.style.fontSize='12px'; rm.style.fontWeight='400'; rm.style.color='rgba(255,255,255,0.55)'; }
-  if(rm) rm.innerHTML = fmt(sun) + ' ~ ' + fmt(d) + '에 구매한<br>복권 번호를 입력해주세요!';
+  if(rm) rm.innerHTML = '<b style="color:#F0B429;font-weight:900;">' + fmt(sun) + ' ~ ' + fmt(d) + '</b>에 구매한<br>복권 번호를 입력해주세요!';
   if(rs) rs.textContent = '';
   document.getElementById('checkResult').classList.add('visible');
   document.getElementById('checkModal').classList.add('open');
@@ -3292,7 +3305,7 @@ function doLottoCheck() {
     document.getElementById('checkResult').classList.add('visible');
     return;
   }
-  document.getElementById('checkBallLabel').textContent = '이번 회차 당첨번호';
+  document.getElementById('checkBallLabel').textContent = '이번주 당첨번호';
   document.getElementById('checkBtnGo').style.display = 'none';
   document.getElementById('checkBtnReset').style.display = 'block';
   var allNums = winning.concat([bonus]);
@@ -3336,10 +3349,19 @@ function resetLottoCheck() {
     el.className = 'check-ball' + (i===6?' cb-bonus':'');
   });
   var rm3 = document.getElementById('checkResultMain');
-  if(rm3) { rm3.style.fontSize='12px'; rm3.style.fontWeight='400'; rm3.style.color='rgba(255,255,255,0.55)'; rm3.innerHTML = '번호를 입력하고 당첨번호를 공개해보세요!'; }
+  if(rm3) {
+    rm3.style.fontSize='12px'; rm3.style.fontWeight='400'; rm3.style.color='rgba(255,255,255,0.55)';
+    var rl = LOTTO_RECENT && LOTTO_RECENT[0];
+    if(rl) {
+      var rd = new Date(rl.date.replace(/\./g, '-'));
+      var rs = new Date(rd); rs.setDate(rd.getDate() - 6);
+      var rf = function(dt){ return dt.getFullYear()+'년 '+(dt.getMonth()+1)+'월 '+dt.getDate()+'일'; };
+      rm3.innerHTML = '<b style="color:#F0B429;font-weight:900;">'+rf(rs)+' ~ '+rf(rd)+'</b>에 구매한<br>로또 번호를 입력해주세요!';
+    }
+  }
   document.getElementById('checkResultSub').textContent = '';
   document.getElementById('checkResult').classList.add('visible');
-  document.getElementById('checkBallLabel').textContent = '당첨번호 (확인 후 공개)';
+  document.getElementById('checkBallLabel').textContent = '이번주 당첨번호';
   document.getElementById('checkBtnGo').style.display = 'block';
   document.getElementById('checkBtnReset').style.display = 'none';
 }
