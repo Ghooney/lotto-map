@@ -711,8 +711,21 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     .bottom-bar-inner { display:flex; align-items:center; gap:16px;
                         max-width:1400px; margin:0 auto; height:100%; }
 
-    /* PC에서 히어로 섹션 숨김 → 하단바로 이동 */
+    /* PC에서 히어로 섹션 숨김 → adSlot1 위 한 줄로 표시 */
     .prize-hero { display:none !important; }
+
+    /* PC 히어로 한 줄 배너 */
+    .pc-hero-bar {
+      display:flex !important; align-items:center; justify-content:space-between;
+      gap:16px; padding:12px 20px; margin-bottom:0;
+      background:#1a0e00; border:2px solid #C9960A; border-radius:12px;
+      cursor:pointer; box-sizing:border-box;
+    }
+    .pc-hero-bar:hover { border-color:#F0B429; }
+    .pc-hero-left { display:flex; align-items:baseline; gap:10px; flex-shrink:0; }
+    .pc-hero-amount { font-size:22px; font-weight:900; color:#F0B429; letter-spacing:-0.5px; font-variant-numeric:tabular-nums; }
+    .pc-hero-count { font-size:12px; color:rgba(255,255,255,0.6); }
+    .pc-hero-cta { font-size:13px; font-weight:700; color:#C9960A; white-space:nowrap; flex-shrink:0; }
 
     /* 하단바 당첨금 아이템 */
     .pc-prize-item {
@@ -754,6 +767,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   /* 모바일에서는 pc-stat-bar, pc-prize-item 숨김 */
   .pc-stat-bar { display:none; }
   .pc-prize-item { display:none; }
+  .pc-hero-bar { display:none !important; }
 
     
     
@@ -832,8 +846,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   <!-- MAP TAB -->
   <div id="tab-map" class="tab-content active">
-    <div class="prize-hero" id="prizeHero">
-      <div class="prize-hero-cta">이제 당신이 주인공이 될 차례! 🍀</div>
+    <div class="prize-hero" id="prizeHero" onclick="openCheckModal()" style="cursor:pointer;">
+      <div class="prize-hero-cta">클릭하고 이번주 당첨 확인하기! ♣</div>
       <div class="prize-hero-amount" id="prizeAmount">-</div>
       <div class="prize-hero-count" id="prizeCount">-</div>
     </div>
@@ -849,6 +863,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
     </div>
 
+    <div class="pc-hero-bar" id="pcHeroBar" onclick="openCheckModal()">
+      <div class="pc-hero-left">
+        <span class="pc-hero-amount" id="pcPrizeAmount">-</span>
+        <span class="pc-hero-count" id="pcPrizeCount">-</span>
+      </div>
+      <div class="pc-hero-cta">클릭하고 이번주 당첨 확인하기! ♣</div>
+    </div>
     <div id="adSlot1" style="box-sizing:border-box;"></div>
     <div class="map-tab-grid">
       <div class="map-wrap" id="mapWrap">
@@ -1159,6 +1180,59 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   color:rgba(0,0,0,0.5);
 }
 
+
+/* ── 당첨 확인 모달 ── */
+#checkModal { display:none; position:fixed; inset:0; z-index:9000; background:rgba(0,0,0,0.7); align-items:center; justify-content:center; padding:20px; }
+#checkModal.open { display:flex; }
+.check-sheet {
+  background:#1a0e00; border:2px solid #C9960A; border-radius:16px;
+  padding:22px 20px; width:100%; max-width:340px; position:relative;
+}
+.check-title { text-align:center; font-size:16px; font-weight:700; color:#F0B429; margin-bottom:3px; }
+.check-sub { text-align:center; font-size:11px; color:rgba(255,255,255,0.4); margin-bottom:6px; }
+.check-guide {
+  text-align:center; font-size:12px; color:rgba(255,255,255,0.55);
+  background:rgba(201,150,10,0.08); border:1px solid rgba(201,150,10,0.2);
+  border-radius:8px; padding:8px 12px; margin-bottom:14px; line-height:1.5;
+}
+.check-guide b { color:#F0B429; font-weight:700; }
+.check-section-label { font-size:10px; color:rgba(255,255,255,0.35); text-align:center; margin-bottom:8px; letter-spacing:0.06em; }
+.check-input-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:7px; margin-bottom:14px; }
+.check-num-input {
+  width:100%; aspect-ratio:1; border-radius:50%;
+  border:1.5px solid rgba(201,150,10,0.4); background:rgba(255,255,255,0.06);
+  color:#fff; font-size:13px; font-weight:700; text-align:center; outline:none;
+  -moz-appearance:textfield; padding:0; transition:border-color 0.2s, background 0.2s;
+}
+.check-num-input::-webkit-outer-spin-button, .check-num-input::-webkit-inner-spin-button { -webkit-appearance:none; }
+.check-num-input:focus { border-color:#F0B429; background:rgba(201,150,10,0.14); }
+.check-divider { border:none; border-top:1px dashed rgba(201,150,10,0.2); margin:14px 0; }
+.check-balls-row { display:flex; gap:5px; justify-content:center; align-items:center; margin-bottom:12px; min-height:44px; }
+.check-ball {
+  width:38px; height:38px; border-radius:50%; display:flex; align-items:center;
+  justify-content:center; font-size:13px; font-weight:900; color:rgba(255,255,255,0.15);
+  background:rgba(255,255,255,0.04); border:1.5px dashed rgba(255,255,255,0.1);
+  transition:all 0.35s; flex-shrink:0;
+}
+.check-ball.cb-bonus { width:32px; height:32px; font-size:11px; }
+.check-ball.cb-revealed { border:none; color:#fff; }
+.check-ball.cb-revealed.cb-match { background:linear-gradient(135deg,#FF8C00,#FFB800); box-shadow:0 0 12px rgba(255,184,0,0.65); transform:scale(1.15); color:#1a0e00; }
+.check-ball.cb-revealed.cb-no-match { background:rgba(255,255,255,0.12); color:rgba(255,255,255,0.5); }
+.check-ball.cb-revealed.cb-bonus-match { background:linear-gradient(135deg,#C9960A,#F0B429); box-shadow:0 0 8px rgba(201,150,10,0.5); color:#1a0e00; }
+.check-result {
+  background:rgba(201,150,10,0.08); border:1px solid rgba(201,150,10,0.2);
+  border-radius:10px; padding:10px 14px; text-align:center; margin-bottom:14px;
+  min-height:48px; display:flex; align-items:center; justify-content:center;
+  opacity:0; transition:opacity 0.5s;
+}
+.check-result.visible { opacity:1; }
+.check-result-main { font-size:15px; font-weight:700; color:#F0B429; }
+.check-result-sub { font-size:11px; color:rgba(255,255,255,0.4); margin-top:3px; }
+.check-btn { width:100%; padding:13px; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; }
+.check-btn-go { background:linear-gradient(135deg,#C9960A,#F0B429); color:#1a0e00; margin-bottom:8px; }
+.check-btn-reset { background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.15); color:rgba(255,255,255,0.6); display:none; margin-bottom:8px; }
+.check-btn-close { background:transparent; border:none; color:rgba(255,255,255,0.3); font-size:12px; cursor:pointer; width:100%; padding:4px; }
+
 /* ── 광고 슬롯 ── */
 .ad-slot {
   width: 100%;
@@ -1243,6 +1317,44 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 }
 </style>
 
+
+<div id="checkModal" onclick="if(event.target===this)closeCheckModal()">
+  <div class="check-sheet">
+    <div class="check-title">🎱 내 번호 당첨 확인</div>
+    <div class="check-sub" id="checkSubTitle">제 1222회차 · 2026.05.02 추첨</div>
+    <div class="check-section-label">내 번호 6개 입력</div>
+    <div class="check-input-grid">
+      <input class="check-num-input" type="number" min="1" max="45" placeholder="?" id="cn1">
+      <input class="check-num-input" type="number" min="1" max="45" placeholder="?" id="cn2">
+      <input class="check-num-input" type="number" min="1" max="45" placeholder="?" id="cn3">
+      <input class="check-num-input" type="number" min="1" max="45" placeholder="?" id="cn4">
+      <input class="check-num-input" type="number" min="1" max="45" placeholder="?" id="cn5">
+      <input class="check-num-input" type="number" min="1" max="45" placeholder="?" id="cn6">
+    </div>
+    <hr class="check-divider">
+    <div class="check-section-label" id="checkBallLabel">당첨번호 (확인 후 공개)</div>
+    <div class="check-balls-row">
+      <div class="check-ball" id="cb0">?</div>
+      <div class="check-ball" id="cb1">?</div>
+      <div class="check-ball" id="cb2">?</div>
+      <div class="check-ball" id="cb3">?</div>
+      <div class="check-ball" id="cb4">?</div>
+      <div class="check-ball" id="cb5">?</div>
+      <span style="font-size:11px;color:rgba(255,255,255,0.2);margin:0 1px;">+</span>
+      <div class="check-ball cb-bonus" id="cb6">?</div>
+    </div>
+    <div class="check-result visible" id="checkResult">
+      <div>
+        <div class="check-result-main" id="checkResultMain" style="font-size:12px;color:rgba(255,255,255,0.45);font-weight:400;" id="checkGuide"></div>
+        <div class="check-result-sub" id="checkResultSub"></div>
+      </div>
+    </div>
+    <button class="check-btn check-btn-go" id="checkBtnGo" onclick="doLottoCheck()">당첨번호 공개 🍀</button>
+    <button class="check-btn check-btn-reset" id="checkBtnReset" onclick="resetLottoCheck()">다시 확인하기</button>
+    <button class="check-btn-close" onclick="closeCheckModal()">닫기 ✕</button>
+  </div>
+</div>
+
 <div id="charmModal" onclick="if(event.target===this)closeCharmModal()">
   <div class="charm-modal-inner">
 
@@ -1320,12 +1432,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <div class="bottom-bar">
   <div class="bottom-bar-inner">
-    <div class="pc-prize-item" id="pcPrizeItem">
-      <span class="pc-prize-amount" id="pcPrizeAmount">-</span>
-      <span class="pc-prize-divider"></span>
-      <span class="pc-prize-count" id="pcPrizeCount">-</span>
-
-    </div>
     <div class="pc-stat-bar">
       <div class="pc-stat-item" onclick="switchTab('recent',document.querySelectorAll('.tab-btn')[2])">
         <span class="pc-stat-icon">🎱</span>
@@ -3139,6 +3245,117 @@ function renderAd(slotId) {
 }
 </script>
 <script>
+
+// ══════════════════════════════════════
+// 당첨 확인 기능
+// ══════════════════════════════════════
+function openCheckModal() {
+  var latest = LOTTO_RECENT && LOTTO_RECENT[0];
+  if(!latest) return;
+  // 안내 문구 동적 생성 (판매 기간: 추첨일 전주 일요일 ~ 추첨일)
+  var d = new Date(latest.date.replace(/\./g, '-'));
+  var sun = new Date(d); sun.setDate(d.getDate() - 6);
+  var fmt = function(dt) {
+    return dt.getFullYear() + '년 ' + (dt.getMonth()+1) + '월 ' + dt.getDate() + '일';
+  };
+  var el = document.getElementById('checkGuide');
+  if(el) el.innerHTML = '<b>' + fmt(sun) + ' ~ ' + fmt(d) + '</b>에<br>구매한 복권 번호를 입력해주세요!';
+  var st = document.getElementById('checkSubTitle');
+  if(st) st.textContent = '제 ' + latest.round + '회차 · ' + latest.date + ' 추첨';
+  // 결과 박스에 기간 안내 초기 표시
+  var rm = document.getElementById('checkResultMain');
+  var rs = document.getElementById('checkResultSub');
+  if(rm) { rm.style.fontSize='12px'; rm.style.fontWeight='400'; rm.style.color='rgba(255,255,255,0.55)'; }
+  if(rm) rm.innerHTML = fmt(sun) + ' ~ ' + fmt(d) + '에 구매한<br>복권 번호를 입력해주세요!';
+  if(rs) rs.textContent = '';
+  document.getElementById('checkResult').classList.add('visible');
+  document.getElementById('checkModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(function(){ document.getElementById('cn1').focus(); }, 100);
+}
+
+function closeCheckModal() {
+  document.getElementById('checkModal').classList.remove('open');
+  document.body.style.overflow = '';
+  resetLottoCheck();
+}
+
+function doLottoCheck() {
+  var latest = LOTTO_RECENT && LOTTO_RECENT[0];
+  if(!latest) return;
+  var winning = latest.nums || [];
+  var bonus = latest.bonus || 0;
+  var vals = [1,2,3,4,5,6].map(function(i){ return parseInt(document.getElementById('cn'+i).value); });
+  if(vals.some(isNaN) || vals.some(function(n){ return n<1||n>45; })) {
+    document.getElementById('checkResultMain').textContent = '1~45 사이 번호 6개를 모두 입력해주세요';
+    document.getElementById('checkResultSub').textContent = '';
+    document.getElementById('checkResult').classList.add('visible');
+    return;
+  }
+  document.getElementById('checkBallLabel').textContent = '이번 회차 당첨번호';
+  document.getElementById('checkBtnGo').style.display = 'none';
+  document.getElementById('checkBtnReset').style.display = 'block';
+  var allNums = winning.concat([bonus]);
+  allNums.forEach(function(num, i) {
+    setTimeout(function() {
+      var el = document.getElementById('cb'+i);
+      el.textContent = num;
+      el.classList.add('cb-revealed');
+      var isBonus = (i === 6);
+      var matched = vals.indexOf(num) !== -1;
+      if(matched) {
+        el.classList.add(isBonus ? 'cb-bonus-match' : 'cb-match');
+      } else {
+        el.classList.add('cb-no-match');
+      }
+    }, i * 220);
+  });
+  setTimeout(function() {
+    var matchMain = vals.filter(function(v){ return winning.indexOf(v) !== -1; }).length;
+    var matchBonus = vals.indexOf(bonus) !== -1;
+    var grade, emoji, sub;
+    if(matchMain===6){ grade='1등 당첨!'; emoji='🎉'; sub='지금 바로 복권을 확인하세요!'; }
+    else if(matchMain===5&&matchBonus){ grade='2등 당첨!'; emoji='🥈'; sub='보너스 포함 5개 일치'; }
+    else if(matchMain===5){ grade='3등 당첨!'; emoji='🥉'; sub='5개 일치 — 수십만원!'; }
+    else if(matchMain===4){ grade='4등 당첨!'; emoji='🎊'; sub='4개 일치 — 5만원'; }
+    else if(matchMain===3){ grade='5등 당첨!'; emoji='👍'; sub='3개 일치 — 5천원'; }
+    else { grade='이번엔 낙첨'; emoji='😢'; sub=matchMain+'개 일치 · 다음엔 명당에서 사보세요!'; }
+    var rm2 = document.getElementById('checkResultMain');
+    rm2.style.fontSize = '15px'; rm2.style.fontWeight = '700'; rm2.style.color = '#F0B429';
+    rm2.innerHTML = emoji + ' ' + grade;
+    document.getElementById('checkResultSub').textContent = sub;
+    document.getElementById('checkResult').classList.add('visible');
+  }, allNums.length * 220 + 200);
+}
+
+function resetLottoCheck() {
+  [1,2,3,4,5,6].forEach(function(i){ document.getElementById('cn'+i).value=''; });
+  [0,1,2,3,4,5,6].forEach(function(i){
+    var el = document.getElementById('cb'+i);
+    el.textContent = '?';
+    el.className = 'check-ball' + (i===6?' cb-bonus':'');
+  });
+  var rm3 = document.getElementById('checkResultMain');
+  if(rm3) { rm3.style.fontSize='12px'; rm3.style.fontWeight='400'; rm3.style.color='rgba(255,255,255,0.55)'; rm3.innerHTML = '번호를 입력하고 당첨번호를 공개해보세요!'; }
+  document.getElementById('checkResultSub').textContent = '';
+  document.getElementById('checkResult').classList.add('visible');
+  document.getElementById('checkBallLabel').textContent = '당첨번호 (확인 후 공개)';
+  document.getElementById('checkBtnGo').style.display = 'block';
+  document.getElementById('checkBtnReset').style.display = 'none';
+}
+
+// 입력 자동 포커스 이동
+[1,2,3,4,5,6].forEach(function(i){
+  var el = document.getElementById('cn'+i);
+  if(!el) return;
+  el.addEventListener('input', function(){
+    if(this.value.length >= 2 && i < 6) document.getElementById('cn'+(i+1)).focus();
+  });
+  el.addEventListener('keydown', function(e){
+    if(e.key==='Enter'){ if(i<6) document.getElementById('cn'+(i+1)).focus(); else doLottoCheck(); }
+  });
+});
+
 // ══════════════════════════════════════
 // 로또기운 부적 기능
 // ══════════════════════════════════════
