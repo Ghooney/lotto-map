@@ -3243,6 +3243,26 @@ const AD_CONFIG = {
 function renderAd(slotId) {
   const ad = AD_CONFIG[slotId];
   if (!ad || !ad.img || !ad.link) return '';
+  if(slotId === 'slot4') {
+    return `<a href="${ad.link}" target="_blank" rel="noopener"
+      style="display:flex;align-items:center;gap:8px;padding:10px 12px;margin:4px 0;
+      border-radius:10px;border:1px solid rgba(201,150,10,0.25);
+      background:var(--ad-bg);text-decoration:none;position:relative;">
+      <img src="${ad.img}"
+        style="width:28px;height:28px;object-fit:contain;mix-blend-mode:screen;flex-shrink:0;"
+        alt="광고 이미지"/>
+      <div style="flex:1;min-width:0;overflow:hidden;">
+        <div style="font-size:13px;font-weight:800;color:#F0B429;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ad.title}</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.45);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ad.desc}</div>
+      </div>
+      <div style="font-size:10px;font-weight:700;color:#F0B429;
+        border:1px solid rgba(201,150,10,0.5);padding:3px 8px;
+        border-radius:20px;white-space:nowrap;flex-shrink:0;">보러가기 →</div>
+      <span style="position:absolute;top:4px;right:6px;font-size:8px;
+        color:rgba(255,255,255,0.35);background:rgba(0,0,0,0.2);
+        padding:1px 4px;border-radius:6px;">AD</span>
+    </a>`;
+  }
   return `<a href="${ad.link}" target="_blank" rel="noopener"
     style="display:block;margin:10px 0;border-radius:12px;overflow:hidden;
     border:1px solid rgba(201,150,10,0.25);
