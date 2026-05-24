@@ -1390,7 +1390,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <div id="adInquiryModal" onclick="if(event.target===this)closeAdInquiry()">
   <div class="ad-inquiry-sheet">
     <div class="ad-inquiry-title">📢 광고 문의</div>
-    <div class="ad-inquiry-sub">로또명당지도 광고 게재 문의</div>
+    <div class="ad-inquiry-sub" style="color:rgba(255,255,255,0.65);font-size:12px;line-height:1.7;">매주 업데이트되는 로또 당첨 정보와<br>로또 구매 고객이 매일 찾는 이곳에<br>당신의 브랜드 광고는 어떠세요? 🍀</div>
     <div class="ad-inquiry-field">
       <label>성함 / 직함</label>
       <input type="text" id="adName" placeholder="">
@@ -3400,7 +3400,16 @@ function sendAdInquiry() {
   if(isMobile) {
     window.location.href = 'mailto:ljh21007@naver.com?subject=' + subject + '&body=' + body;
   } else {
-    window.open('https://mail.naver.com/write?to=ljh21007%40naver.com&subject=' + subject + '&body=' + body, '_blank');
+    var plainBody = '안녕하세요!\n\n로또명당지도 광고 문의드립니다.\n\n▪ 성함/직함: ' + name + '\n▪ 회사명: ' + company + '\n▪ 광고 내용:\n' + msg + '\n\n감사합니다.';
+    if(navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(plainBody).then(function(){
+        alert('✅ 문의 내용이 클립보드에 복사되었어요!\n네이버 메일이 열리면 본문에 Ctrl+V 로 붙여넣기 해주세요.');
+        window.open('https://mail.naver.com/write?to=ljh21007%40naver.com&subject=' + decodeURIComponent(subject), '_blank');
+      });
+    } else {
+      alert('네이버 메일이 열립니다.\n문의 내용을 직접 입력해주세요.');
+      window.open('https://mail.naver.com/write?to=ljh21007%40naver.com&subject=' + decodeURIComponent(subject), '_blank');
+    }
   }
   closeAdInquiry();
 }
