@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+  xmlns:atom="http://www.w3.org/2005/Atom"
+  xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>로또명당지도 — 이번주 로또 당첨 명당</title>
+    <link>https://www.lotto-map.kr</link>
+    <description>전국 로또 1등 당첨 명당 판매점 지도. 매주 최신 당첨 정보를 제공합니다.</description>
+    <language>ko</language>
+    <copyright>로또명당지도</copyright>
+    <lastBuildDate>Fri, 23 May 2026 20:45:00 +0900</lastBuildDate>
+    <atom:link href="https://www.lotto-map.kr/rss.xml" rel="self" type="application/rss+xml"/>
+    <image>
+      <url>https://www.lotto-map.kr/og-image.png</url>
+      <title>로또명당지도</title>
+      <link>https://www.lotto-map.kr</link>
+    </image>
+
+    <item>
+      <title>🍀 제1225회 로또 1등 당첨번호 8·9·19·25·41·42 — 명당 판매점 12곳 공개</title>
+      <link>https://www.lotto-map.kr</link>
+      <description><![CDATA[
+        제1225회 로또 추첨 결과 1등 당첨번호는 8, 9, 19, 25, 41, 42 (보너스 33)입니다.
+        1등 당첨자 13명, 당첨금 각 22억 2,813만원.
+        이번 회차 1등 오프라인 판매점 12곳을 지도에서 확인하세요.
+        <br/><a href="https://www.lotto-map.kr">👉 내 주변 명당 찾기</a>
+      ]]></description>
+      <pubDate>Fri, 23 May 2026 20:45:00 +0900</pubDate>
+      <guid isPermaLink="false">lotto-1225-2026-05-23</guid>
+      <dc:creator>로또명당지도</dc:creator>
+    </item>
+
+    <item>
+      <title>🍀 제1224회 로또 1등 당첨번호 9·18·21·27·44·45 — 명당 판매점 11곳 공개</title>
+      <link>https://www.lotto-map.kr</link>
+      <description><![CDATA[
+        제1224회 로또 추첨 결과 1등 당첨번호는 9, 18, 21, 27, 44, 45 (보너스 28)입니다.
+        1등 당첨자 12명, 당첨금 각 24억 1,485만원.
+        이번 회차 1등 오프라인 판매점 11곳을 지도에서 확인하세요.
+        <br/><a href="https://www.lotto-map.kr">👉 내 주변 명당 찾기</a>
+      ]]></description>
+      <pubDate>Fri, 16 May 2026 20:45:00 +0900</pubDate>
+      <guid isPermaLink="false">lotto-1224-2026-05-16</guid>
+      <dc:creator>로또명당지도</dc:creator>
+    </item>
+
+    <item>
+      <title>🍀 제1223회 로또 1등 당첨번호 16·18·20·32·33·39 — 명당 판매점 14곳 공개</title>
+      <link>https://www.lotto-map.kr</link>
+      <description><![CDATA[
+        제1223회 로또 추첨 결과 1등 당첨번호는 16, 18, 20, 32, 33, 39 (보너스 26)입니다.
+        1등 당첨자 16명, 당첨금 각 18억 5,755만원.
+        <br/><a href="https://www.lotto-map.kr">👉 내 주변 명당 찾기</a>
+      ]]></description>
+      <pubDate>Fri, 09 May 2026 20:45:00 +0900</pubDate>
+      <guid isPermaLink="false">lotto-1223-2026-05-09</guid>
+      <dc:creator>로또명당지도</dc:creator>
+    </item>
+
+    <item>
+      <title>🍀 제1222회 로또 1등 당첨번호 4·11·17·22·32·41 — 명당 판매점 22곳 공개</title>
+      <link>https://www.lotto-map.kr</link>
+      <description><![CDATA[
+        제1222회 로또 추첨 결과 1등 당첨번호는 4, 11, 17, 22, 32, 41 (보너스 34)입니다.
+        1등 당첨자 24명, 당첨금 각 12억 298만원.
+        <br/><a href="https://www.lotto-map.kr">👉 내 주변 명당 찾기</a>
+      ]]></description>
+      <pubDate>Fri, 02 May 2026 20:45:00 +0900</pubDate>
+      <guid isPermaLink="false">lotto-1222-2026-05-02</guid>
+      <dc:creator>로또명당지도</dc:creator>
+    </item>
+
+  </channel>
+</rss>
