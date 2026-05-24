@@ -3403,12 +3403,12 @@ function sendAdInquiry() {
     var plainBody = '안녕하세요!\n\n로또명당지도 광고 문의드립니다.\n\n▪ 성함/직함: ' + name + '\n▪ 회사명: ' + company + '\n▪ 광고 내용:\n' + msg + '\n\n감사합니다.';
     if(navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(plainBody).then(function(){
-        alert('✅ 문의 내용이 클립보드에 복사되었어요!\n네이버 메일(mail.naver.com)에서 ljh21007@naver.com 으로 보낼 때\n본문에 Ctrl+V 로 붙여넣기 해주세요.');
-        window.open('https://mail.naver.com', '_blank');
+        var gmailUrl = 'https://mail.google.com/mail/?view=cm&to=ljh21007%40naver.com&su=' + subject + '&body=' + body;
+        window.open(gmailUrl, '_blank');
       });
     } else {
-      alert('네이버 메일(mail.naver.com)로 ljh21007@naver.com 에 문의해주세요.');
-      window.open('https://mail.naver.com', '_blank');
+      var gmailUrl = 'https://mail.google.com/mail/?view=cm&to=ljh21007%40naver.com&su=' + subject + '&body=' + body;
+      window.open(gmailUrl, '_blank');
     }
   }
   closeAdInquiry();
