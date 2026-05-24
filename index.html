@@ -884,6 +884,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="prize-hero-amount" id="prizeAmount">-</div>
       <div class="prize-hero-count" id="prizeCount">-</div>
     </div>
+    <div id="adSlot1Mobile" class="ad-slot-mobile"></div>
     <div class="stats-row">
       <div class="stat-card" style="animation-delay:0.1s;cursor:pointer" onclick="switchTab('recent',document.querySelectorAll('.tab-btn')[2])">
         <div class="stat-icon">🎱</div><div class="stat-value">1,225회</div><div class="stat-label">전체 회차</div>
@@ -1297,6 +1298,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 .check-btn-close { background:transparent; border:none; color:rgba(255,255,255,0.3); font-size:12px; cursor:pointer; width:100%; padding:4px; }
 
 /* ── 광고 슬롯 ── */
+  .ad-slot-mobile { display:block; }
+  @media(min-width:1024px){ .ad-slot-mobile { display:none; } }
+
 .ad-slot {
   width: 100%;
   margin: 10px 0;
@@ -3412,6 +3416,9 @@ function renderAdSlots(){
     var el = document.getElementById('ad' + id.charAt(0).toUpperCase() + id.slice(1));
     if(el) el.innerHTML = renderAd(id);
   });
+  // 모바일 전용 slot1
+  var mob = document.getElementById('adSlot1Mobile');
+  if(mob) mob.innerHTML = renderAd('slot1');
 }
 // script가 body 끝에 있으므로 DOM은 이미 준비됨 — 즉시 실행
 renderAdSlots();
