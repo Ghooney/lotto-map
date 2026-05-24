@@ -3112,6 +3112,31 @@ function switchTab(id,btn){
 
   // ── 초기화 ──
 window.onload=()=>{initMap();};
+
+// 이번 회차 히어로 섹션 렌더링 (카운터 애니메이션)
+(function(){
+  var latest = LOTTO_RECENT && LOTTO_RECENT[0];
+  if(!latest) return;
+  var prize = latest.prize1 || 0;
+  var count = latest.count1 || 0;
+  var el = document.getElementById('prizeAmount');
+  var el2 = document.getElementById('prizeCount');
+  var pcAmount = document.getElementById('pcPrizeAmount');
+  var pcCount = document.getElementById('pcPrizeCount');
+  if(pcCount) pcCount.textContent = '당첨자 수 ' + count + '명 · 제 ' + latest.round + '회차';
+  if(el2) el2.textContent = '당첨자 수 ' + count + '명 · 제 ' + latest.round + '회차';
+  function easeOutExpo(t){ return t===1?1:1-Math.pow(2,-10*t); }
+  function animateCount(targetEl, timestamp){
+    if(!targetEl._st) targetEl._st = timestamp;
+    var p = Math.min((timestamp-targetEl._st)/1800, 1);
+    targetEl.textContent = Math.floor(easeOutExpo(p)*prize).toLocaleString('ko-KR')+'원';
+    if(p<1) requestAnimationFrame(function(ts){animateCount(targetEl,ts);});
+    else targetEl.textContent = prize.toLocaleString('ko-KR')+'원';
+  }
+  if(el) requestAnimationFrame(function(ts){animateCount(el,ts);});
+  if(pcAmount) requestAnimationFrame(function(ts){animateCount(pcAmount,ts);});
+})();
+
 </script>
 
   <!-- 행운번호 뽑기 모달 -->
@@ -3655,51 +3680,7 @@ async function shareCharmKakao(){
   }
 }
 
-// 이번 회차 히어로 섹션 렌더링 (카운터 애니메이션)
-(function(){
-  var latest = LOTTO_RECENT && LOTTO_RECENT[0];
-  if(!latest) return;
-  var prize = latest.prize1 || 0;
-  var count = latest.count1 || 0;
-  var el = document.getElementById('prizeAmount');
-  var el2 = document.getElementById('prizeCount');
-  // PC 하단 바
-  var pcAmount = document.getElementById('pcPrizeAmount');
-  var pcCount = document.getElementById('pcPrizeCount');
-  if(pcCount) pcCount.textContent = '당첨자 수 ' + count + '명 · 제 ' + latest.round + '회차';
-  if(el2) el2.textContent = '당첨자 수 ' + count + '명 · 제 ' + latest.round + '회차';
-
-  // 카운터 애니메이션 공통
-  var duration = 1800;
-  var startTime = null;
-
-  function easeOutExpo(t) {
-    return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
-  }
-
-  function animateEl(targetEl, timestamp) {
-    if(!targetEl._startTime) targetEl._startTime = timestamp;
-    var elapsed = timestamp - targetEl._startTime;
-    var progress = Math.min(elapsed / duration, 1);
-    var current = Math.floor(easeOutExpo(progress) * prize);
-    targetEl.textContent = current.toLocaleString('ko-KR') + '원';
-    if(progress < 1) {
-      requestAnimationFrame(function(ts){ animateEl(targetEl, ts); });
-    } else {
-      targetEl.textContent = prize.toLocaleString('ko-KR') + '원';
-    }
-  }
-
-  // 모바일 히어로 — 즉시 시작
-  if(el) {
-    requestAnimationFrame(function(ts){ animateEl(el, ts); });
-  }
-
-  // PC 하단바 — 페이지 로드 후 바로 시작
-  if(pcAmount) {
-    requestAnimationFrame(function(ts){ animateEl(pcAmount, ts); });
-  }
-})();
+// 히어로 렌더링은 데이터 스크립트 끝에서 실행
 
 
 
