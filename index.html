@@ -780,6 +780,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   .pc-stat-bar { display:none; }
   .pc-prize-item { display:none; }
   .pc-hero-bar { display:none; }
+  .pc-hero-ad-grid { display:none; }
 
     
     
@@ -1224,7 +1225,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 #adInquiryModal { display:none; position:fixed; inset:0; z-index:9100; background:rgba(0,0,0,0.65); align-items:center; justify-content:center; padding:20px; }
 #adInquiryModal.open { display:flex; }
 .ad-inquiry-sheet {
-  background:var(--bg-main); border:2px solid #C9960A; border-radius:16px;
+  background:#1a0e00; border:2px solid #C9960A; border-radius:16px;
   padding:24px 20px; width:100%; max-width:340px; position:relative;
 }
 .ad-inquiry-title { text-align:center; font-size:16px; font-weight:700; color:#F0B429; margin-bottom:4px; }
@@ -1392,15 +1393,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="ad-inquiry-sub">로또명당지도 광고 게재 문의</div>
     <div class="ad-inquiry-field">
       <label>성함 / 직함</label>
-      <input type="text" id="adName" placeholder="홍길동 / 마케팅팀장">
+      <input type="text" id="adName" placeholder="">
     </div>
     <div class="ad-inquiry-field">
       <label>회사명</label>
-      <input type="text" id="adCompany" placeholder="(주)행운복권">
+      <input type="text" id="adCompany" placeholder="">
     </div>
     <div class="ad-inquiry-field">
       <label>광고 내용</label>
-      <textarea id="adContent" placeholder="광고하실 내용을 간단히 적어주세요"></textarea>
+      <textarea id="adContent" placeholder=""></textarea>
     </div>
     <div class="ad-inquiry-btns">
       <button class="ad-inquiry-btn-close" onclick="closeAdInquiry()">닫기</button>
