@@ -3337,7 +3337,7 @@ const AD_CONFIG = {
 
 function renderAd(slotId) {
   const ad = AD_CONFIG[slotId];
-  if (!ad || !ad.img || !ad.link) return '';
+  if (!ad || !ad.img) return '';
   if(slotId === 'slot4') {
     return `<a href="javascript:void(0)" onclick="openAdInquiry()"
       style="display:flex;align-items:center;gap:8px;padding:10px 12px;margin:4px 0;
