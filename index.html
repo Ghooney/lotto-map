@@ -3388,13 +3388,10 @@ function renderAdSlots(){
     if(el) el.innerHTML = renderAd(id);
   });
 }
-if(document.readyState === 'loading'){
-  document.addEventListener('DOMContentLoaded', renderAdSlots);
-} else {
-  renderAdSlots();
-}
-</script>
-<script>
+// script가 body 끝에 있으므로 DOM은 이미 준비됨 — 즉시 실행
+renderAdSlots();
+
+
 
 
 // ══════════════════════════════════════
@@ -3693,19 +3690,9 @@ async function shareCharmKakao(){
     }
   }
 
-  // 모바일 히어로 — 화면 진입 시 시작
+  // 모바일 히어로 — 즉시 시작
   if(el) {
-    if('IntersectionObserver' in window) {
-      var observer = new IntersectionObserver(function(entries) {
-        if(entries[0].isIntersecting) {
-          requestAnimationFrame(function(ts){ animateEl(el, ts); });
-          observer.disconnect();
-        }
-      }, { threshold: 0.3 });
-      observer.observe(el);
-    } else {
-      requestAnimationFrame(function(ts){ animateEl(el, ts); });
-    }
+    requestAnimationFrame(function(ts){ animateEl(el, ts); });
   }
 
   // PC 하단바 — 페이지 로드 후 바로 시작
