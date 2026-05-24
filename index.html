@@ -3395,7 +3395,7 @@ function sendAdInquiry() {
   if(!name || !company || !msg) { alert('모든 항목을 입력해주세요.'); return; }
   var subject = encodeURIComponent('[로또명당지도] 광고 문의 — ' + company);
   var body = encodeURIComponent('안녕하세요!\n\n로또명당지도 광고 문의드립니다.\n\n▪ 성함/직함: ' + name + '\n▪ 회사명: ' + company + '\n▪ 광고 내용:\n' + msg + '\n\n감사합니다.');
-  window.location.href = 'mailto:ljh21007@naver.com?subject=' + subject + '&body=' + body;
+  window.open('https://mail.naver.com/write?to=ljh21007@naver.com&subject=' + subject + '&body=' + body);
   closeAdInquiry();
 }
 [1,2,3].forEach(function(i){
