@@ -719,7 +719,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
     /* PC 히어로 + 광고 그리드 (map-tab-grid와 동일 비율) */
     .pc-hero-ad-grid {
-      display: grid;
+      display: grid !important;
       grid-template-columns: 1fr 320px;
       gap: 20px;
       margin-bottom: 16px;
@@ -1236,8 +1236,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 .ad-inquiry-field textarea {
   width:100%; padding:10px 12px; border-radius:8px;
   border:1px solid rgba(201,150,10,0.35); background:rgba(255,255,255,0.05);
-  color:var(--text-primary); font-size:13px; font-family:inherit; outline:none;
-  transition:border-color 0.2s;
+  color:#fff; font-size:13px; font-family:inherit; outline:none;
+  caret-color:#F0B429; transition:border-color 0.2s;
 }
 .ad-inquiry-field input:focus,
 .ad-inquiry-field textarea:focus { border-color:#F0B429; }
